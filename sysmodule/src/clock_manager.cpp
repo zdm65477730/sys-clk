@@ -75,6 +75,10 @@ void ClockManager::Tick()
     if (this->RefreshContext() || this->config->Refresh())
     {
         std::uint32_t hz = 0;
+        std::uint32_t hzOrig = 0;
+        std::uint32_t ug = 0;
+        std::uint32_t ogb = 0;
+        std::uint32_t ocb = 0;
         for (unsigned int module = 0; module < SysClkModule_EnumMax; module++)
         {
             hz = this->context->overrideFreqs[module];
@@ -86,9 +90,27 @@ void ClockManager::Tick()
 
             if (hz)
             {
-                hz = Clocks::GetNearestHz((SysClkModule)module, this->context->profile, hz);
+                ug = this->GetConfig()->GetConfigValue(SysClkConfigValue_UncappedGPUEnabled);
+                
+                if (1 == ug)
+                {
+                    hz = Clocks::GetNearestHz((SysClkModule)module, SysClkProfile_HandheldChargingOfficial, hz);
+                }
+                else
+                {
+                
+                    hz = Clocks::GetNearestHz((SysClkModule)module, this->context->profile, hz);
+                    
+                }
 
-                if (hz != this->context->freqs[module] && this->context->enabled)
+                // BOOST MODE override: let boost mode do its job and then return back to sys/custom values
+                hzOrig = this->context->freqs[module];
+                
+                ogb = this->GetConfig()->GetConfigValue(SysClkConfigValue_OverrideGPUBoostEnabled);
+                ocb = this->GetConfig()->GetConfigValue(SysClkConfigValue_OverrideCPUBoostEnabled);
+                
+                if ((( ((ocb == 0) || (hzOrig/1000000 != 1785)) && module == 0) || ( ((ogb == 0) || (hzOrig/1000000 != 76)) && module == 1) || module == 2) && hz != hzOrig && this->context->enabled)
+ 
                 {
                     FileUtils::LogLine("[mgr] %s clock set : %u.%u Mhz", Clocks::GetModuleName((SysClkModule)module, true), hz/1000000, hz/100000 - hz/1000000*10);
                     Clocks::SetHz((SysClkModule)module, hz);
@@ -125,6 +147,18 @@ bool ClockManager::RefreshContext()
     }
 
     SysClkProfile profile = Clocks::GetCurrentProfile();
+    
+    //fake charging profile for handheld
+    std::uint32_t fc = this->GetConfig()->GetConfigValue(SysClkConfigValue_FakeChargingModeEnabled);
+    
+    if (1 == fc)
+    {
+        if(profile < SysClkProfile_HandheldCharging)
+        {
+            profile =  SysClkProfile_HandheldCharging;
+        }
+    }
+    
     if (profile != this->context->profile)
     {
         FileUtils::LogLine("[mgr] Profile change: %s", Clocks::GetProfileName(profile, true));

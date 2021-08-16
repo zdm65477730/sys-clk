@@ -107,7 +107,7 @@ AdvancedSettingsTab::AdvancedSettingsTab()
 
     sysclkIpcGetConfigValues(&this->configValues);
 
-    for (int i = 0; i < SysClkConfigValue_EnumMax; i++)
+    for (int i = 0; i < 3; i++)
     {
         SysClkConfigValue config = (SysClkConfigValue) i;
 
@@ -156,6 +156,59 @@ AdvancedSettingsTab::AdvancedSettingsTab()
 
         this->addView(configItem);
     }
+    
+    for (int i = 3; i < SysClkConfigValue_EnumMax; i++)
+    {
+        SysClkConfigValue config = (SysClkConfigValue) i;
+
+        std::string label       = std::string(sysclkFormatConfigValue(config, true));
+        
+        uint64_t defaultValue   = configValues.values[config];
+        
+        bool defValue = false;
+        
+        if(defaultValue==1) {
+            defValue = true;
+        }
+    
+        brls::ToggleListItem* configItem2 = new brls::ToggleListItem(label, defValue, "", "Yes", "No");
+        
+        configItem2->getClickEvent()->subscribe([this, configItem2, config](View* view)
+        {
+            try
+            {
+                int value = 0;
+                std::string valuestring = configItem2->getValue();
+                
+                if(valuestring == "Yes") {
+                    value = 1;
+                }
+                
+
+                uint64_t uvalue = (uint64_t) value;
+
+                if (!sysclkValidConfigValue(config, uvalue))
+                {
+                    brls::Application::notify("\uE5CD Couldn't save configuration: invalid value");
+                    configItem2->setValue(std::to_string(this->configValues.values[config]));
+                    return;
+                }
+
+                // Save the config
+                this->configValues.values[config] = uvalue;
+                sysclkIpcSetConfigValues(&this->configValues);
+
+                brls::Application::notify("\uE14B Configuration saved");
+            }
+            catch(const std::exception& e)
+            {
+                brls::Logger::error("Unable to parse config value %s: %s", configItem2->getValue().c_str(), e.what());
+            }
+        });
+
+        this->addView(configItem2);
+    }
+    
 }
 
 std::string AdvancedSettingsTab::getDescriptionForConfig(SysClkConfigValue config)
@@ -172,4 +225,3 @@ std::string AdvancedSettingsTab::getDescriptionForConfig(SysClkConfigValue confi
             return "";
     }
 }
-
