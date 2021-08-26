@@ -28,9 +28,10 @@
 
 void BaseGui::preDraw(tsl::gfx::Renderer* renderer)
 {
-    renderer->drawBitmap(LOGO_X, LOGO_Y, LOGO_WIDTH, LOGO_HEIGHT, logo_rgba_bin);
-    renderer->drawString("overlay", false, LOGO_LABEL_X, LOGO_LABEL_Y, LOGO_LABEL_FONT_SIZE, TEXT_COLOR);
-    renderer->drawString(TARGET_VERSION, false, VERSION_X, VERSION_Y, VERSION_FONT_SIZE, DESC_COLOR);
+    int offset = 13;
+    renderer->drawBitmap(LOGO_X, LOGO_Y-offset, LOGO_WIDTH, LOGO_HEIGHT, logo_rgba_bin);
+    renderer->drawString("overlay", false, LOGO_LABEL_X, LOGO_LABEL_Y-offset, LOGO_LABEL_FONT_SIZE, TEXT_COLOR);
+    renderer->drawString(TARGET_VERSION, false, VERSION_X, VERSION_Y-offset, VERSION_FONT_SIZE, DESC_COLOR);
 }
 
 tsl::elm::Element* BaseGui::createUI()

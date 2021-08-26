@@ -92,7 +92,12 @@ void GlobalOverrideGui::addModuleListToggleListItem(int configNumber,std::string
             
             // Save the config
             this->configValues.values[config] = uvalue;
-            sysclkIpcSetConfigValues(&this->configValues);
+        
+            Result rc =  sysclkIpcSetConfigValues(&this->configValues);
+            if(R_FAILED(rc))
+            {
+                FatalGui::openWithResultCode("sysclkIpcSetConfigValues", rc);
+            }
             
             this->lastContextUpdate = armGetSystemTick();
             

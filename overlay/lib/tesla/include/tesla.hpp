@@ -1667,7 +1667,7 @@ namespace tsl {
          */
         class HeaderOverlayFrame : public Element {
         public:
-            HeaderOverlayFrame(u16 headerHeight = 175) : Element(), m_headerHeight(headerHeight) {}
+            HeaderOverlayFrame(u16 headerHeight = 135) : Element(), m_headerHeight(headerHeight) {}
             virtual ~HeaderOverlayFrame() {
                 if (this->m_contentElement != nullptr)
                     delete this->m_contentElement;
