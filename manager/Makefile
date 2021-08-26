@@ -180,8 +180,8 @@ all: $(BUILD)
 $(ROMFS):
 	@[ -d $@ ] || mkdir -p $@
 	@echo Merging ROMFS...
-	@cp -ruf $(CURDIR)/$(BOREALIS_PATH)/resources/. $(CURDIR)/$(ROMFS)/borealis/
-	@cp -ruf $(CURDIR)/$(RESOURCES)/. $(CURDIR)/$(ROMFS)/
+	@cp -rf $(CURDIR)/$(BOREALIS_PATH)/resources/. $(CURDIR)/$(ROMFS)/borealis/
+	@cp -rf $(CURDIR)/$(RESOURCES)/. $(CURDIR)/$(ROMFS)/
 
 $(BUILD): $(ROMFS)
 	@[ -d $@ ] || mkdir -p $@

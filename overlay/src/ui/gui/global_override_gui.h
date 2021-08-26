@@ -18,14 +18,19 @@ class GlobalOverrideGui : public BaseMenuGui
 {
     protected:
         tsl::elm::ListItem* listItems[SysClkModule_EnumMax];
+        tsl::elm::ToggleListItem* ToggleListItems[SysClkConfigValue_EnumMax];
+        tsl::elm::ToggleListItem* enabledToggle;
         std::uint32_t listHz[SysClkModule_EnumMax];
 
         void openFreqChoiceGui(SysClkModule module, std::uint32_t* hzList);
         void addModuleListItem(SysClkModule module, std::uint32_t* hzList);
-
+        void addModuleListToggleListItem(int configNumber,std::string shortLabel);
+    
     public:
         GlobalOverrideGui();
         ~GlobalOverrideGui() {}
         void listUI() override;
         void refresh() override;
+    private:
+        SysClkConfigValueList configValues;
 };

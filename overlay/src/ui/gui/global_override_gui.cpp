@@ -20,6 +20,11 @@ GlobalOverrideGui::GlobalOverrideGui()
         this->listItems[m] = nullptr;
         this->listHz[m] = 0;
     }
+    
+    for(std::uint16_t m = 0; m < SysClkConfigValue_EnumMax; m++)
+    {
+        this->ToggleListItems[m] = nullptr;
+    }
 }
 
 void GlobalOverrideGui::openFreqChoiceGui(SysClkModule module, std::uint32_t* hzList)
@@ -58,11 +63,54 @@ void GlobalOverrideGui::addModuleListItem(SysClkModule module, std::uint32_t* hz
     this->listItems[module] = listItem;
 }
 
+void GlobalOverrideGui::addModuleListToggleListItem(int configNumber,std::string shortLabel)
+{
+       
+    sysclkIpcGetConfigValues(&this->configValues);
+
+    SysClkConfigValue config = (SysClkConfigValue) configNumber;
+    
+    uint64_t defaultValue   = configValues.values[config];
+    
+    bool defValue = false;
+    
+    if(defaultValue==1) {
+        defValue = true;
+    }
+
+    this->enabledToggle = new tsl::elm::ToggleListItem(shortLabel, defValue);
+
+    enabledToggle->setStateChangedListener([this,config](bool state) {
+            
+            int value = 0;
+            
+            if(state) {
+                value = 1;
+            }
+            
+            uint64_t uvalue = (uint64_t) value;
+            
+            // Save the config
+            this->configValues.values[config] = uvalue;
+            sysclkIpcSetConfigValues(&this->configValues);
+            
+            this->lastContextUpdate = armGetSystemTick();
+            
+    });
+    
+    this->listElement->addItem(this->enabledToggle);
+    this->ToggleListItems[configNumber] = this->enabledToggle;
+}
+
 void GlobalOverrideGui::listUI()
 {
     this->addModuleListItem(SysClkModule_CPU, &sysclk_g_freq_table_cpu_hz[0]);
     this->addModuleListItem(SysClkModule_GPU, &sysclk_g_freq_table_gpu_hz[0]);
     this->addModuleListItem(SysClkModule_MEM, &sysclk_g_freq_table_mem_hz[0]);
+    this->addModuleListToggleListItem(3,"Uncapped GPU");
+    this->addModuleListToggleListItem(4,"Fake Handheld Charg.");
+    this->addModuleListToggleListItem(5,"CPU to 1785 in boost");
+    this->addModuleListToggleListItem(6,"GPU to 76 in boost");
 }
 
 void GlobalOverrideGui::refresh()
@@ -79,5 +127,28 @@ void GlobalOverrideGui::refresh()
                 this->listHz[m] = this->context->overrideFreqs[m];
             }
         }
+        
+        for(std::uint16_t m = 3; m < SysClkConfigValue_EnumMax; m++)
+        {
+            if(this->ToggleListItems[m] != nullptr)
+            {
+                
+                sysclkIpcGetConfigValues(&this->configValues);
+            
+                SysClkConfigValue config = (SysClkConfigValue) m;
+            
+                uint64_t defaultValue   = configValues.values[config];
+                
+                bool defValue = false;
+                
+                if(defaultValue==1) {
+                    defValue = true;
+                }
+                
+                this->ToggleListItems[m]->setState(defValue);
+            
+            }
+        }
+        
     }
 }
