@@ -157,6 +157,7 @@ AdvancedSettingsTab::AdvancedSettingsTab()
         this->addView(configItem);
     }
     
+    //loop for the added 4 toggles
     for (int i = 3; i < SysClkConfigValue_EnumMax; i++)
     {
         SysClkConfigValue config = (SysClkConfigValue) i;
@@ -184,7 +185,6 @@ AdvancedSettingsTab::AdvancedSettingsTab()
                     value = 1;
                 }
                 
-
                 uint64_t uvalue = (uint64_t) value;
 
                 if (!sysclkValidConfigValue(config, uvalue))

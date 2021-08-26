@@ -103,7 +103,7 @@ void ClockManager::Tick()
                     
                 }
 
-                // BOOST MODE override: let boost mode do its job and then return back to sys/custom values
+                // BOOST MODE override: let boost mode do its job and then return back to sys/custom values (this can be toggled on and off)
                 hzOrig = this->context->freqs[module];
                 
                 ogb = this->GetConfig()->GetConfigValue(SysClkConfigValue_OverrideGPUBoostEnabled);

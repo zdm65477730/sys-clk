@@ -107,6 +107,7 @@ void GlobalOverrideGui::listUI()
     this->addModuleListItem(SysClkModule_CPU, &sysclk_g_freq_table_cpu_hz[0]);
     this->addModuleListItem(SysClkModule_GPU, &sysclk_g_freq_table_gpu_hz[0]);
     this->addModuleListItem(SysClkModule_MEM, &sysclk_g_freq_table_mem_hz[0]);
+    //added 4 toggles
     this->addModuleListToggleListItem(3,"Uncapped GPU");
     this->addModuleListToggleListItem(4,"Fake Handheld Charg.");
     this->addModuleListToggleListItem(5,"CPU to 1785 in boost");
@@ -132,7 +133,6 @@ void GlobalOverrideGui::refresh()
         {
             if(this->ToggleListItems[m] != nullptr)
             {
-                
                 sysclkIpcGetConfigValues(&this->configValues);
             
                 SysClkConfigValue config = (SysClkConfigValue) m;

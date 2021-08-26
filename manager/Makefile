@@ -54,7 +54,7 @@ APP_RESOURCES		:=	romfs:/
 #---------------------------------------------------------------------------------
 # version control constants
 #---------------------------------------------------------------------------------
-TARGET_VERSION	:= $(shell git describe --dirty --always --tags)
+TARGET_VERSION	:= $(shell git describe --tags)
 APP_VERSION		:= $(TARGET_VERSION)
 
 #---------------------------------------------------------------------------------
