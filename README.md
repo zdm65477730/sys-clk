@@ -2,6 +2,36 @@
 
 ![Screenshot](screenshot_overlay.jpg)
 
+![Screenshot](screenshot_profiles.jpg)
+
+## Custom configurations
+
+* Uncapped GPU (does not change profile)
+    1. Use whatever GPU value you want, no connected charger needed.
+    2. It doesn't change the profile, e.g without a charger you are still at profile 'Handheld'. If you need to change the profile without the requirement to connect a charger, use the setting 'Minimum profile'.
+    3. Possible values: `Yes` or `No`.
+    
+* Minimum profile (spoof profile)
+    1. Chosen minimum profile will ensure that your device will stay at least at that minimum level. 
+    2. It's meant for people who have higher clocks in charging profiles and sometimes want to activate those profiles without a charger (e.g. choosing 'Official Charger' will ensure that your device's profile will remain at least at 'Official Charger' even if in reality your device is in handheld). 
+    3. Chosen minimum profile won't downgrade your real profile if the real profile is higher than the minimum profile (e.g. when docked choosing 'Charging' doesn't do anything (you are already at a higher profile)).
+    4. Possible values:
+    `Do not override`,
+    `Charging`,
+    `USB Charger`,
+    `Official Charger` or
+    `Docked`.
+    
+* Set CPU to 1785 MHz during boost
+    1. Let boost mode override sys-clk value set for CPU during boost mode with the default 1785 MHz.
+    2. In most cases you want to enable this to get the best loading times. Don't enable if you want to use CPU clocks over 1785 MHz also during boost mode (you need to use a CPU patch to achieve this which most of people don't even have).
+    3. Possible values: `Yes` or `No`.
+
+* Set GPU to 76 MHz during boost
+    1. Let boost mode override sys-clk value set for GPU during boost mode with the default 76 MHz.
+    2. In most cases you want to enable this to get the best out of your battery life. 
+    2. Possible values: `Yes` or `No`.
+    
 # sys-clk
 
 Switch sysmodule allowing you to set cpu/gpu/mem clocks according to the running application and docked state.
