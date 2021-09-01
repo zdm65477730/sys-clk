@@ -13,18 +13,23 @@
 #include "../../ipc.h"
 #include "base_menu_gui.h"
 #include "freq_choice_gui.h"
+#include "profile_choice_gui.h"
 
 class GlobalOverrideGui : public BaseMenuGui
 {
     protected:
         tsl::elm::ListItem* listItems[SysClkModule_EnumMax];
+        tsl::elm::ListItem* customListItems[SysClkConfigValue_EnumMax];
         tsl::elm::ToggleListItem* ToggleListItems[SysClkConfigValue_EnumMax];
         tsl::elm::ToggleListItem* enabledToggle;
         std::uint32_t listHz[SysClkModule_EnumMax];
-
+        std::uint32_t customListProfiles[SysClkConfigValue_EnumMax];
+    
         void openFreqChoiceGui(SysClkModule module, std::uint32_t* hzList);
+        void openProfileChoiceGui(int configNumber, std::uint32_t* profileList);
         void addModuleListItem(SysClkModule module, std::uint32_t* hzList);
-        void addModuleListToggleListItem(int configNumber,std::string shortLabel);
+        void addCustomListItem(int configNumber,std::string shortLabel, std::uint32_t* profileList);
+        void addCustomToggleListItem(int configNumber,std::string shortLabel);
     
     public:
         GlobalOverrideGui();

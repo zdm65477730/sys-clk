@@ -119,3 +119,29 @@ brls::SelectListItem* createFreqListItem(SysClkModule module, uint32_t selectedF
 
     return new brls::SelectListItem(name, clocks, selected);
 }
+
+brls::SelectListItem* createProfileListItem(std::string name, uint32_t selectedProfile, std::string defaultString)
+{
+    uint32_t* table  = sysclk_g_profile_table;
+    
+    size_t selected = 0;
+    size_t i        = 0;
+
+    std::vector<std::string> profiles;
+
+    profiles.push_back(defaultString);
+
+    while (table[i] != 0)
+    {
+        uint32_t profile = table[i];
+
+        if (profile == selectedProfile)
+            selected = profile;
+        
+        profiles.push_back(formatProfile((SysClkProfile)profile));
+        
+        i++;
+    }
+
+    return new brls::SelectListItem(name, profiles, selected);
+}

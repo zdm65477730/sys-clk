@@ -18,7 +18,7 @@ typedef enum {
     SysClkConfigValue_TempLogIntervalMs,
     SysClkConfigValue_CsvWriteIntervalMs,
     SysClkConfigValue_UncappedGPUEnabled,
-    SysClkConfigValue_FakeChargingModeEnabled,
+    SysClkConfigValue_FakeProfileModeEnabled,
     SysClkConfigValue_OverrideCPUBoostEnabled,
     SysClkConfigValue_OverrideGPUBoostEnabled,
     SysClkConfigValue_EnumMax,
@@ -40,12 +40,12 @@ static inline const char* sysclkFormatConfigValue(SysClkConfigValue val, bool pr
             return pretty ? "CSV write interval (ms)" : "csv_write_interval_ms";
         case SysClkConfigValue_UncappedGPUEnabled:
             return pretty ? "Uncapped GPU (does not change profile)" : "uncapped_gpu_enabled";
-        case SysClkConfigValue_FakeChargingModeEnabled:
-            return pretty ? "Fake Handheld Charging profile" : "fake_charging_mode_enabled";
+        case SysClkConfigValue_FakeProfileModeEnabled:
+            return pretty ? "Minimum profile (spoof profile)" : "fake_profile_mode_enabled";
         case SysClkConfigValue_OverrideCPUBoostEnabled:
-            return pretty ? "Let boost mode raise CPU to 1785 MHz" : "override_cpu_boost_enabled";
+            return pretty ? "Set CPU to 1785 MHz during boost" : "override_cpu_boost_enabled";
         case SysClkConfigValue_OverrideGPUBoostEnabled:
-            return pretty ? "Let boost mode lower GPU to 76 MHz" : "override_gpu_boost_enabled";
+            return pretty ? "Set GPU to 76 MHz during boost" : "override_gpu_boost_enabled";
         default:
             return NULL;
     }
@@ -60,7 +60,7 @@ static inline uint64_t sysclkDefaultConfigValue(SysClkConfigValue val)
         case SysClkConfigValue_TempLogIntervalMs:
         case SysClkConfigValue_CsvWriteIntervalMs:
         case SysClkConfigValue_UncappedGPUEnabled:
-        case SysClkConfigValue_FakeChargingModeEnabled:
+        case SysClkConfigValue_FakeProfileModeEnabled:
             return 0ULL;
         case SysClkConfigValue_OverrideCPUBoostEnabled:
         case SysClkConfigValue_OverrideGPUBoostEnabled:
@@ -77,10 +77,11 @@ static inline uint64_t sysclkValidConfigValue(SysClkConfigValue val, uint64_t in
         case SysClkConfigValue_PollingIntervalMs:
             return input > 0;
         case SysClkConfigValue_UncappedGPUEnabled:
-        case SysClkConfigValue_FakeChargingModeEnabled:
         case SysClkConfigValue_OverrideCPUBoostEnabled:
         case SysClkConfigValue_OverrideGPUBoostEnabled:
             return (input == 0 || input == 1);
+        case SysClkConfigValue_FakeProfileModeEnabled:
+            return (input >=  0 && input < 5);
         case SysClkConfigValue_TempLogIntervalMs:
         case SysClkConfigValue_CsvWriteIntervalMs:
             return true;

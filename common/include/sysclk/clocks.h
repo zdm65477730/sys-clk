@@ -61,6 +61,7 @@ typedef struct
 #define SYSCLK_GPU_HANDHELD_MAX_HZ 460800000
 #define SYSCLK_GPU_UNOFFICIAL_CHARGER_MAX_HZ 768000000
 
+extern uint32_t sysclk_g_profile_table[];
 extern uint32_t sysclk_g_freq_table_mem_hz[];
 extern uint32_t sysclk_g_freq_table_cpu_hz[];
 extern uint32_t sysclk_g_freq_table_gpu_hz[];

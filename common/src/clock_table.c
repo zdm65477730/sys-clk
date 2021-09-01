@@ -10,6 +10,15 @@
 
 #include <stdint.h>
 
+//number representation for all the profiles (excluding handheld = 0)
+uint32_t sysclk_g_profile_table[] = {
+    1,
+    2,
+    3,
+    4,
+    0,
+};
+
 uint32_t sysclk_g_freq_table_mem_hz[] = {
     665600000,
     800000000,

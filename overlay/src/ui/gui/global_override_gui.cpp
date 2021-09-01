@@ -24,6 +24,9 @@ GlobalOverrideGui::GlobalOverrideGui()
     for(std::uint16_t m = 0; m < SysClkConfigValue_EnumMax; m++)
     {
         this->ToggleListItems[m] = nullptr;
+        
+        this->customListItems[m] = nullptr;
+        this->customListProfiles[m] = 0;
     }
 }
 
@@ -41,6 +44,34 @@ void GlobalOverrideGui::openFreqChoiceGui(SysClkModule module, std::uint32_t* hz
         this->context->overrideFreqs[module] = hz;
 
         return true;
+    });
+}
+
+void GlobalOverrideGui::openProfileChoiceGui(int configNumber, std::uint32_t* profileList)
+{
+    sysclkIpcGetConfigValues(&this->configValues);
+
+    SysClkConfigValue config = (SysClkConfigValue) configNumber;
+    
+    tsl::changeTo<ProfileChoiceGui>((uint64_t) configValues.values[config], profileList, [this,config](std::uint32_t profile) {
+        
+        uint64_t uvalue = (uint64_t) profile;
+        
+        // Save the config
+        this->configValues.values[config] = uvalue;
+        
+        Result rc =  sysclkIpcSetConfigValues(&this->configValues);
+        if(R_FAILED(rc))
+        {
+            FatalGui::openWithResultCode("sysclkIpcSetConfigValues", rc);
+            return false;
+            
+        }
+        
+        this->lastContextUpdate = armGetSystemTick();
+        return true;
+        
+        
     });
 }
 
@@ -63,7 +94,26 @@ void GlobalOverrideGui::addModuleListItem(SysClkModule module, std::uint32_t* hz
     this->listItems[module] = listItem;
 }
 
-void GlobalOverrideGui::addModuleListToggleListItem(int configNumber,std::string shortLabel)
+void GlobalOverrideGui::addCustomListItem(int configNumber,std::string shortLabel, std::uint32_t* profileList)
+{
+    tsl::elm::ListItem* listItem = new tsl::elm::ListItem(shortLabel);
+    listItem->setValue(formatListProfile(0));
+
+    listItem->setClickListener([this, profileList,configNumber](u64 keys) {
+        if((keys & HidNpadButton_A) == HidNpadButton_A)
+        {
+            this->openProfileChoiceGui(configNumber,profileList);
+            return true;
+        }
+
+        return false;
+    });
+
+    this->listElement->addItem(listItem);
+    this->customListItems[configNumber] = listItem;
+}
+
+void GlobalOverrideGui::addCustomToggleListItem(int configNumber,std::string shortLabel)
 {
        
     sysclkIpcGetConfigValues(&this->configValues);
@@ -78,7 +128,7 @@ void GlobalOverrideGui::addModuleListToggleListItem(int configNumber,std::string
         defValue = true;
     }
 
-    this->enabledToggle = new tsl::elm::ToggleListItem(shortLabel, defValue);
+    this->enabledToggle = new tsl::elm::ToggleListItem(shortLabel, defValue,"Yes","No");
 
     enabledToggle->setStateChangedListener([this,config](bool state) {
             
@@ -97,10 +147,11 @@ void GlobalOverrideGui::addModuleListToggleListItem(int configNumber,std::string
             if(R_FAILED(rc))
             {
                 FatalGui::openWithResultCode("sysclkIpcSetConfigValues", rc);
+                return false;
             }
             
             this->lastContextUpdate = armGetSystemTick();
-            
+            return true;
     });
     
     this->listElement->addItem(this->enabledToggle);
@@ -112,11 +163,11 @@ void GlobalOverrideGui::listUI()
     this->addModuleListItem(SysClkModule_CPU, &sysclk_g_freq_table_cpu_hz[0]);
     this->addModuleListItem(SysClkModule_GPU, &sysclk_g_freq_table_gpu_hz[0]);
     this->addModuleListItem(SysClkModule_MEM, &sysclk_g_freq_table_mem_hz[0]);
-    //added 4 toggles
-    this->addModuleListToggleListItem(3,"Uncapped GPU");
-    this->addModuleListToggleListItem(4,"Fake Handheld Charg.");
-    this->addModuleListToggleListItem(5,"CPU to 1785 in boost");
-    this->addModuleListToggleListItem(6,"GPU to 76 in boost");
+    //added 4 custom configs
+    this->addCustomToggleListItem(3,"Uncapped GPU");
+    this->addCustomListItem(4,"Min. profile",&sysclk_g_profile_table[0]);
+    this->addCustomToggleListItem(5,"CPU to 1785 in boost");
+    this->addCustomToggleListItem(6,"GPU to 76 in boost");
 }
 
 void GlobalOverrideGui::refresh()
@@ -134,25 +185,49 @@ void GlobalOverrideGui::refresh()
             }
         }
         
+
+        
         for(std::uint16_t m = 3; m < SysClkConfigValue_EnumMax; m++)
         {
-            if(this->ToggleListItems[m] != nullptr)
-            {
+            
+            if(m == 4) {
+
                 sysclkIpcGetConfigValues(&this->configValues);
             
                 SysClkConfigValue config = (SysClkConfigValue) m;
             
-                uint64_t defaultValue   = configValues.values[config];
+                uint32_t defaultValue   = configValues.values[config];
                 
-                bool defValue = false;
                 
-                if(defaultValue==1) {
-                    defValue = true;
+                if(this->customListItems[m] != nullptr && this->customListProfiles[m] != defaultValue)
+                {
+                    this->customListItems[m]->setValue(formatListProfile(defaultValue));
+                    this->customListProfiles[m] = defaultValue;
                 }
                 
-                this->ToggleListItems[m]->setState(defValue);
+            } else {
+ 
+                if(this->ToggleListItems[m] != nullptr)
+                {
+                    sysclkIpcGetConfigValues(&this->configValues);
+                
+                    SysClkConfigValue config = (SysClkConfigValue) m;
+                
+                    uint64_t defaultValue   = configValues.values[config];
+                    
+                    bool defValue = false;
+                    
+                    if(defaultValue==1) {
+                        defValue = true;
+                    }
+                    
+                    this->ToggleListItems[m]->setState(defValue);
+                
+                }
             
             }
+            
+
         }
         
     }

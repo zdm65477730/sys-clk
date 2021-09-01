@@ -1,4 +1,4 @@
-/*
+ /*
     sys-clk manager, a sys-clk frontend homebrew
     Copyright (C) 2019  natinusala
     Copyright (C) 2019  p-sam
@@ -157,7 +157,7 @@ AdvancedSettingsTab::AdvancedSettingsTab()
         this->addView(configItem);
     }
     
-    //loop for the added 4 toggles
+    //loop for the added 4 custom configs
     for (int i = 3; i < SysClkConfigValue_EnumMax; i++)
     {
         SysClkConfigValue config = (SysClkConfigValue) i;
@@ -166,48 +166,96 @@ AdvancedSettingsTab::AdvancedSettingsTab()
         
         uint64_t defaultValue   = configValues.values[config];
         
-        bool defValue = false;
-        
-        if(defaultValue==1) {
-            defValue = true;
-        }
-    
-        brls::ToggleListItem* configItem2 = new brls::ToggleListItem(label, defValue, "", "Yes", "No");
-        
-        configItem2->getClickEvent()->subscribe([this, configItem2, config](View* view)
-        {
-            try
-            {
-                int value = 0;
-                std::string valuestring = configItem2->getValue();
-                
-                if(valuestring == "Yes") {
-                    value = 1;
-                }
-                
-                uint64_t uvalue = (uint64_t) value;
+        if (i==4) {
 
-                if (!sysclkValidConfigValue(config, uvalue))
+            // Fake profile
+            brls::SelectListItem *profileListItem = createProfileListItem(label, (uint32_t) defaultValue);
+            profileListItem->getValueSelectedEvent()->subscribe([this,config,profileListItem](int result)
+            {
+
+                try
                 {
-                    brls::Application::notify("\uE5CD Couldn't save configuration: invalid value");
-                    configItem2->setValue(std::to_string(this->configValues.values[config]));
-                    return;
+                    
+                    uint64_t uvalue = (uint64_t) sysclk_g_profile_table[result - 1];
+                    
+                    if (!sysclkValidConfigValue(config, uvalue))
+                    {
+                        brls::Application::notify("\uE5CD Couldn't save configuration: invalid value");
+                        profileListItem->setValue(sysclkFormatProfile((SysClkProfile)this->configValues.values[config],true) );
+                        return;
+                    }
+
+                    // Save the config
+                    this->configValues.values[config] = uvalue;
+                    sysclkIpcSetConfigValues(&this->configValues);
+
+                    brls::Application::notify("\uE14B Configuration saved");
                 }
+                catch(const std::exception& e)
+                {
+                    brls::Logger::error("Unable to parse config value %s: %s", profileListItem->getValue().c_str(), e.what());
+                }
+                
+                
+            });
 
-                // Save the config
-                this->configValues.values[config] = uvalue;
-                sysclkIpcSetConfigValues(&this->configValues);
+            this->addView(profileListItem);
 
-                brls::Application::notify("\uE14B Configuration saved");
+        } else {
+
+            bool defValue = false;
+            
+            if(defaultValue==1) {
+                defValue = true;
             }
-            catch(const std::exception& e)
+        
+            brls::ToggleListItem* configItem2 = new brls::ToggleListItem(label, defValue, "", "Yes", "No");
+            
+            configItem2->getClickEvent()->subscribe([this, configItem2, config](View* view)
             {
-                brls::Logger::error("Unable to parse config value %s: %s", configItem2->getValue().c_str(), e.what());
-            }
-        });
+                try
+                {
+                    int value = 0;
+                    std::string valuestring = configItem2->getValue();
+                    
+                    if(valuestring == "Yes") {
+                        value = 1;
+                    }
+                    
+                    uint64_t uvalue = (uint64_t) value;
 
-        this->addView(configItem2);
+                    if (!sysclkValidConfigValue(config, uvalue))
+                    {
+                        brls::Application::notify("\uE5CD Couldn't save configuration: invalid value");
+                        configItem2->setValue(std::to_string(this->configValues.values[config]));
+                        return;
+                    }
+
+                    // Save the config
+                    this->configValues.values[config] = uvalue;
+                    sysclkIpcSetConfigValues(&this->configValues);
+
+                    brls::Application::notify("\uE14B Configuration saved");
+                }
+                catch(const std::exception& e)
+                {
+                    brls::Logger::error("Unable to parse config value %s: %s", configItem2->getValue().c_str(), e.what());
+                }
+            });
+
+            this->addView(configItem2);
+            
+        }
+        
     }
+    
+    // Notes
+    brls::Label *notes = new brls::Label(
+        brls::LabelStyle::DESCRIPTION,
+        "Chosen minimum profile will ensure that your device will stay at least at that minimum level. It's meant for people who have higher clocks in charging profiles and sometimes want to activate those profiles without a charger (e.g. choosing 'Official Charger' will ensure that your device's profile will remain at least at 'Official Charger' even if in reality your device is in handheld). Chosen minimum profile won't downgrade your real profile if the real profile is higher than the minimum profile (e.g. when docked choosing 'Charging' doesn't do anything (you are already at a higher profile)).",
+        true
+    );
+    this->addView(notes);
     
 }
 

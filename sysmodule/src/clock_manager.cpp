@@ -8,6 +8,7 @@
  * --------------------------------------------------------------------------
  */
 
+#include "errors.h"
 #include "clock_manager.h"
 #include "file_utils.h"
 #include "clocks.h"
@@ -19,6 +20,31 @@ ClockManager* ClockManager::GetInstance()
 {
     return instance;
 }
+
+bool ClockManager::IsCpuBoostMode()
+{
+    std::uint32_t confId = 0;
+    Result rc = 0;
+    rc = apmExtGetCurrentPerformanceConfiguration(&confId);
+    ASSERT_RESULT_OK(rc, "apmExtGetCurrentPerformanceConfiguration");
+    if(confId == 0x92220009 || confId == 0x9222000A)
+        return true;
+    else
+        return false;
+}
+
+bool ClockManager::IsGpuThrottleMode()
+{
+    std::uint32_t confId = 0;
+    Result rc = 0;
+    rc = apmExtGetCurrentPerformanceConfiguration(&confId);
+    ASSERT_RESULT_OK(rc, "apmExtGetCurrentPerformanceConfiguration");
+    if(confId == 0x92220009 || confId == 0x9222000A || confId == 0x9222000B || confId == 0x9222000C)
+        return true;
+    else
+        return false;
+}
+
 
 void ClockManager::Exit()
 {
@@ -75,7 +101,6 @@ void ClockManager::Tick()
     if (this->RefreshContext() || this->config->Refresh())
     {
         std::uint32_t hz = 0;
-        std::uint32_t hzOrig = 0;
         std::uint32_t ug = 0;
         std::uint32_t ogb = 0;
         std::uint32_t ocb = 0;
@@ -104,12 +129,11 @@ void ClockManager::Tick()
                 }
 
                 // BOOST MODE override: let boost mode do its job and then return back to sys/custom values (this can be toggled on and off)
-                hzOrig = this->context->freqs[module];
                 
                 ogb = this->GetConfig()->GetConfigValue(SysClkConfigValue_OverrideGPUBoostEnabled);
                 ocb = this->GetConfig()->GetConfigValue(SysClkConfigValue_OverrideCPUBoostEnabled);
                 
-                if ((( ((ocb == 0) || (hzOrig/1000000 != 1785)) && module == 0) || ( ((ogb == 0) || (hzOrig/1000000 != 76)) && module == 1) || module == 2) && hz != hzOrig && this->context->enabled)
+                if ((( ((ocb == 0) || (!IsCpuBoostMode())) && module == 0) || ( ((ogb == 0) || (!IsGpuThrottleMode())) && module == 1) || module == 2) && hz != this->context->freqs[module] && this->context->enabled)
  
                 {
                     FileUtils::LogLine("[mgr] %s clock set : %u.%u Mhz", Clocks::GetModuleName((SysClkModule)module, true), hz/1000000, hz/100000 - hz/1000000*10);
@@ -148,14 +172,15 @@ bool ClockManager::RefreshContext()
 
     SysClkProfile profile = Clocks::GetCurrentProfile();
     
-    //fake charging profile for handheld
-    std::uint32_t fc = this->GetConfig()->GetConfigValue(SysClkConfigValue_FakeChargingModeEnabled);
+    //choose profile
+    std::uint32_t fp = this->GetConfig()->GetConfigValue(SysClkConfigValue_FakeProfileModeEnabled);
     
-    if (1 == fc)
+    if (0 != fp)
     {
-        if(profile < SysClkProfile_HandheldCharging)
+        if(profile < (SysClkProfile)fp)
         {
-            profile =  SysClkProfile_HandheldCharging;
+            profile =  (SysClkProfile)fp;
+            
         }
     }
     

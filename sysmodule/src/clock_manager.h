@@ -23,7 +23,9 @@ class ClockManager
     static ClockManager* GetInstance();
     static void Initialize();
     static void Exit();
-
+    
+    bool IsCpuBoostMode();
+    bool IsGpuThrottleMode();
     void SetRunning(bool running);
     bool Running();
     void Tick();
