@@ -218,6 +218,8 @@ bool ClockManager::RefreshContext()
             else
             {
                 FileUtils::LogLine("[mgr] %s override disabled", Clocks::GetModuleName((SysClkModule)module, true));
+                Clocks::ResetToStock();
+                
             }
             this->context->overrideFreqs[module] = hz;
             hasChanged = true;
