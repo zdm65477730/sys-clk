@@ -4,6 +4,8 @@
 
 ![Screenshot](screenshot_profiles.jpg)
 
+![Screenshot](screenshot_global_profile.jpg)
+
 ## Custom configurations
 
 * Uncapped GPU (does not change profile)
@@ -31,6 +33,16 @@
     1. Let boost mode override sys-clk value set for GPU during boost mode with the default 76 MHz.
     2. In most cases you want to enable this to get the best out of your battery life. 
     2. Possible values: `Yes` or `No`.
+
+* Override MEM to 1600 MHz
+    1. Permanently override MEM to 1600 MHz (or higher MEM clock achieved with patching).
+    2. An easy way to use max memory clocks without doing application specific profiles or using the new global default profile. 
+    2. Possible values: `Yes` or `No`.
+
+* Global default profile
+    1. A global default profile for applications without an application specific profile.
+    2. Can also be used as a permanent global override config if there are no application profiles at all.
+    2. Only accessible via sys-clk manager, always the first item in the application profile list, always visible in the list.
     
 # sys-clk
 
