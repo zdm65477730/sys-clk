@@ -157,7 +157,7 @@ AdvancedSettingsTab::AdvancedSettingsTab()
         this->addView(configItem);
     }
     
-    //loop for the added 4 custom configs
+    //loop for the added 5 custom configs
     for (int i = 3; i < SysClkConfigValue_EnumMax; i++)
     {
         SysClkConfigValue config = (SysClkConfigValue) i;

@@ -163,11 +163,12 @@ void GlobalOverrideGui::listUI()
     this->addModuleListItem(SysClkModule_CPU, &sysclk_g_freq_table_cpu_hz[0]);
     this->addModuleListItem(SysClkModule_GPU, &sysclk_g_freq_table_gpu_hz[0]);
     this->addModuleListItem(SysClkModule_MEM, &sysclk_g_freq_table_mem_hz[0]);
-    //added 4 custom configs
+    //added 5 custom configs
     this->addCustomToggleListItem(3,"Uncapped GPU");
     this->addCustomListItem(4,"Min. profile",&sysclk_g_profile_table[0]);
     this->addCustomToggleListItem(5,"CPU to 1785 in boost");
     this->addCustomToggleListItem(6,"GPU to 76 in boost");
+    this->addCustomToggleListItem(7,"Override MEM to 1600");
 }
 
 void GlobalOverrideGui::refresh()

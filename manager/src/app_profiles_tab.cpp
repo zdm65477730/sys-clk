@@ -55,6 +55,55 @@ AppProfilesTab::AppProfilesTab()
     int recordCount     = 0;
     size_t controlSize  = 0;
 
+    //Global default profile
+    tid = 9999999999999999;
+
+    Title* title = (Title*) malloc(sizeof(Title));
+    title->tid = tid;
+
+    memset(title->name, 0, sizeof(title->name));
+    strncpy(title->name,"Global default profile", sizeof(title->name)-1);
+
+    // Profile
+    rc = sysclkIpcGetProfileCount(tid, &title->profileCount);
+    if (R_FAILED(rc))
+    {
+        errorResult("sysclkIpcGetProfileCount", rc);
+        free(title);
+    }
+
+    // Add the ListItem
+    brls::ListItem *listItem = new brls::ListItem(formatListItemTitle(std::string(title->name)), "Global default profile for applications without an application specific profile. Can also be used as a permanent global override config if there are no application profiles at all.", formatTid(title->tid));
+
+    title->listItem = listItem;
+
+    this->items.push_back(listItem);
+
+    if (title->profileCount > 0)
+    {
+        listItem->setValue(PROFILE_BADGE);
+        this->profilesItems.push_back(listItem);
+    }
+    else
+    {
+        //keep global default profiles always visible
+        this->profilesItems.push_back(listItem);
+
+        if (!this->showEmptyProfiles)
+            listItem->collapse(false);
+    }
+    
+    listItem->setIndented(true);
+
+    listItem->getClickEvent()->subscribe([this, title](View* view) {
+        this->editingTitle = title;
+        AppProfileFrame* profileFrame = new AppProfileFrame(title);
+        brls::Application::pushView(profileFrame, brls::ViewAnimation::SLIDE_LEFT);
+    });
+
+    this->addView(listItem);
+    this->titles.push_back(title);
+
     while (true)
     {
         // Record
@@ -199,25 +248,30 @@ void AppProfilesTab::willAppear(bool resetState)
             this->editingTitle->listItem->setValue(PROFILE_BADGE);
         else
             this->editingTitle->listItem->setValue("");
-
-        // Update lists
-
-        // Remove from emptyProfilesItems if it didn't have a profile
-        // but has one now
-        // Add to profilesItems
-        if (!hadProfiles && hasProfiles)
+        
+        //keep global default profiles always visible
+        if (this->editingTitle->tid != 9999999999999999)
         {
-            this->emptyProfilesItems.erase(std::remove(this->emptyProfilesItems.begin(), this->emptyProfilesItems.end(), this->editingTitle->listItem), this->emptyProfilesItems.end());
-            this->profilesItems.push_back(this->editingTitle->listItem);
-        }
+            // Update lists
 
-        // Add to emptyProfilesItems if it had a profile but doesn't
-        // has one now
-        // Remove from profilesItems
-        if (hadProfiles && !hasProfiles)
-        {
-            this->emptyProfilesItems.push_back(this->editingTitle->listItem);
-            this->profilesItems.erase(std::remove(this->profilesItems.begin(), this->profilesItems.end(), this->editingTitle->listItem), this->profilesItems.end());
+            // Remove from emptyProfilesItems if it didn't have a profile
+            // but has one now
+            // Add to profilesItems
+            if (!hadProfiles && hasProfiles)
+            {
+                this->emptyProfilesItems.erase(std::remove(this->emptyProfilesItems.begin(), this->emptyProfilesItems.end(), this->editingTitle->listItem), this->emptyProfilesItems.end());
+                this->profilesItems.push_back(this->editingTitle->listItem);
+            }
+
+            // Add to emptyProfilesItems if it had a profile but doesn't
+            // has one now
+            // Remove from profilesItems
+            if (hadProfiles && !hasProfiles)
+            {
+                this->emptyProfilesItems.push_back(this->editingTitle->listItem);
+                this->profilesItems.erase(std::remove(this->profilesItems.begin(), this->profilesItems.end(), this->editingTitle->listItem), this->profilesItems.end());
+            }
+            
         }
 
         // Refresh the filter

@@ -98,8 +98,15 @@ bool ClockManager::Running()
 void ClockManager::Tick()
 {
     std::scoped_lock lock{this->contextMutex};
-    if (this->RefreshContext() || this->config->Refresh())
+    bool configRefreshed = this->config->Refresh();
+    
+    if (this->RefreshContext() || configRefreshed)
     {
+        // reset clocks after config change, otherwise choosing do not override  for cpu/gpu/mem will not reset clocks to stock properly
+        if(configRefreshed)
+        {
+            Clocks::ResetToStock();
+        }
         std::uint32_t hz = 0;
         std::uint32_t ug = 0;
         std::uint32_t ogb = 0;
@@ -111,6 +118,12 @@ void ClockManager::Tick()
             if(!hz)
             {
                 hz = this->config->GetAutoClockHz(this->context->applicationId, (SysClkModule)module, this->context->profile);
+            }
+            
+            // Global default profile for applications without an application specific profile
+            if(!hz)
+            {
+                hz = this->config->GetAutoClockHz(9999999999999999, (SysClkModule)module, this->context->profile);
             }
 
             if (hz)
@@ -133,7 +146,7 @@ void ClockManager::Tick()
                 ogb = this->GetConfig()->GetConfigValue(SysClkConfigValue_OverrideGPUBoostEnabled);
                 ocb = this->GetConfig()->GetConfigValue(SysClkConfigValue_OverrideCPUBoostEnabled);
                 
-                if ((( ((ocb == 0) || (!IsCpuBoostMode())) && module == 0) || ( ((ogb == 0) || (!IsGpuThrottleMode())) && module == 1) || module == 2) && hz != this->context->freqs[module] && this->context->enabled)
+                if ((( ((ocb == 0) || (!IsCpuBoostMode())) && module == 0) || ( ((ogb == 0) || (!IsGpuThrottleMode())) && module == 1) || (!(hz == 1600000000 && this->context->freqs[module] > 1600000000) && module == 2)) && hz != this->context->freqs[module] && this->context->enabled)
  
                 {
                     FileUtils::LogLine("[mgr] %s clock set : %u.%u Mhz", Clocks::GetModuleName((SysClkModule)module, true), hz/1000000, hz/100000 - hz/1000000*10);
@@ -209,6 +222,19 @@ bool ClockManager::RefreshContext()
         }
 
         hz = this->GetConfig()->GetOverrideHz((SysClkModule)module);
+        
+        // Override MEM to 1600
+        if (module == 2)
+        {
+            std::uint32_t om = this->GetConfig()->GetConfigValue(SysClkConfigValue_OverrideMEMEnabled);
+            
+            if (1 == om)
+            {
+                hz = 1600000000;
+            }
+
+        }
+        
         if (hz != this->context->overrideFreqs[module])
         {
             if(hz)
