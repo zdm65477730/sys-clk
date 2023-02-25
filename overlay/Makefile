@@ -32,7 +32,7 @@ NO_ICON		:=	1
 #---------------------------------------------------------------------------------
 # version control constants
 #---------------------------------------------------------------------------------
-TARGET_VERSION	:= $(shell git describe --tags)
+TARGET_VERSION	:= $(shell git describe --dirty --always --tags)
 APP_VERSION		:= $(TARGET_VERSION)
 
 #---------------------------------------------------------------------------------
@@ -47,7 +47,7 @@ CFLAGS	:=	-g -Wall -O2 -ffunction-sections \
 
 CFLAGS	+=	$(INCLUDE) -D__SWITCH__
 
-CXXFLAGS	:= $(CFLAGS) -fno-exceptions -std=gnu++17
+CXXFLAGS	:= $(CFLAGS) -fno-exceptions -std=gnu++20
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
