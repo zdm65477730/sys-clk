@@ -223,14 +223,14 @@ bool ClockManager::RefreshContext()
 
         hz = this->GetConfig()->GetOverrideHz((SysClkModule)module);
         
-        // Override MEM to 1600
+        // Override MEM to MAX (1600 or higher if using loader.kip or own patched version of atmosphere)
         if (module == 2)
         {
             std::uint32_t om = this->GetConfig()->GetConfigValue(SysClkConfigValue_OverrideMEMEnabled);
             
             if (1 == om)
             {
-                hz = 1600000000;
+                hz = Clocks::GetMaxMemFreq();
             }
 
         }

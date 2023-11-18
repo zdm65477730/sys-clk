@@ -168,7 +168,7 @@ void GlobalOverrideGui::listUI()
     this->addCustomListItem(4,"Min. profile",&sysclk_g_profile_table[0]);
     this->addCustomToggleListItem(5,"CPU to 1785 in boost");
     this->addCustomToggleListItem(6,"GPU to 76 in boost");
-    this->addCustomToggleListItem(7,"Override MEM to 1600");
+    this->addCustomToggleListItem(7,"Override MEM to MAX");
 }
 
 void GlobalOverrideGui::refresh()

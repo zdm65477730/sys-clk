@@ -48,7 +48,7 @@ static inline const char* sysclkFormatConfigValue(SysClkConfigValue val, bool pr
         case SysClkConfigValue_OverrideGPUBoostEnabled:
             return pretty ? "Set GPU to 76 MHz during boost" : "override_gpu_boost_enabled";
         case SysClkConfigValue_OverrideMEMEnabled:
-            return pretty ? "Override MEM to 1600 MHz" : "override_mem_enabled";
+            return pretty ? "Override MEM to MAX (1600 MHz or higher)" : "override_mem_enabled";
         default:
             return NULL;
     }

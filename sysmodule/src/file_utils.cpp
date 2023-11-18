@@ -9,7 +9,10 @@
  */
 
 #include "file_utils.h"
+#include "clocks.h"
+#include <dirent.h>
 #include <nxExt.h>
+#include "errors.h"
 
 static LockableMutex g_log_mutex;
 static LockableMutex g_csv_mutex;
@@ -179,3 +182,149 @@ void FileUtils::Exit()
     fsdevUnmountAll();
     fsExit();
 }
+
+void FileUtils::ParseLoaderKip() {
+    
+    const char* full_path = "/atmosphere/kips/loader.kip";
+    struct stat sb;
+    
+    if (stat(full_path,&sb) == 0 && !(sb.st_mode & S_IFDIR)) {
+      /*
+        const char* dirs[] = { "/atmosphere/kips/" };
+        char* full_path = new char[0x200];
+        //delete[] full_path;
+
+        for (auto const& dir : dirs) {
+            struct dirent *entry = NULL;
+            DIR *dp = opendir(dir);
+            if (!dp)
+                continue;
+            //closedir(dp);
+
+            while ((entry = readdir(dp))) {
+                if (entry->d_type != DT_REG)
+                    continue;
+
+                snprintf(full_path, 0x200, "%s%s", dir, entry->d_name);
+
+                FILE* fp = fopen(full_path, "r");
+                if (!fp)
+                    continue;
+
+                fseek(fp, 0, SEEK_END);
+                long res = ftell(fp);
+                fclose(fp);
+                if (res == -1)
+                    continue;
+
+                size_t filesize = (size_t)res;
+                if (filesize < 0x1000 || filesize > 512 * 1024)
+                    continue;
+
+                const char kip_ext[] = {'.', 'k', 'i', 'p'};
+                size_t file_name_len = strnlen(reinterpret_cast<const char*>(&entry->d_name), 256);
+                const char* file_ext = &entry->d_name[file_name_len - sizeof(kip_ext)];
+
+                if (strncasecmp((const char*)kip_ext, file_ext, sizeof(kip_ext)))
+                    continue;
+
+                if (R_SUCCEEDED(CustParser(full_path, filesize))) {
+                    LogLine("Parsed cust config from \"%s\"", full_path);
+                    return;
+                }
+            }
+        }
+        */
+
+                FILE* fp = fopen(full_path, "r");
+                if (!fp)
+                    return;
+
+                fseek(fp, 0, SEEK_END);
+                long res = ftell(fp);
+                fclose(fp);
+                if (res == -1)
+                    return;
+
+                size_t filesize = (size_t)res;
+                if (filesize < 0x1000 || filesize > 512 * 1024)
+                    return;
+
+                if (R_SUCCEEDED(CustParser(full_path, filesize))) {
+                    LogLine("Parsed cust config from \"%s\"", full_path);
+                    return;
+                }
+   
+    } else {
+        //not found
+        return;
+        
+    }
+    
+    //ERROR_THROW("Cannot locate loader.kip in /, /atmosphere/, /atmosphere/kips/ and /bootloader/");
+}
+
+Result FileUtils::CustParser(const char* filepath, size_t filesize) {
+    enum ParseError {
+        ParseError_Success = 0,
+        ParseError_OpenReadFailed,
+        ParseError_WrongKipMagic,
+        ParseError_CustNotFound,
+        ParseError_WrongCustRev,
+    };
+
+    FILE* fp = fopen(filepath, "r");
+    if (!fp)
+        return ParseError_OpenReadFailed;
+    //fclose(fp);
+
+    constexpr uint8_t KIP_MAGIC[] = {'K', 'I', 'P', '1', 'L', 'o', 'a', 'd', 'e', 'r'};
+    constexpr size_t  BLOCK_SIZE = 0x1000;
+
+    char* tmp_block = new char[BLOCK_SIZE];
+    //delete[] tmp_block;
+    fread(tmp_block, sizeof(char), BLOCK_SIZE, fp);
+
+    if (memcmp(KIP_MAGIC, tmp_block, sizeof(KIP_MAGIC)))
+        return ParseError_WrongKipMagic;
+
+    CustTable table {};
+
+    fpos_t cust_pos = 0;
+    long block_pos = 0;
+    while ((block_pos = ftell(fp)) >= 0 && (size_t)block_pos < filesize) {
+        for (size_t i = 0; i < BLOCK_SIZE; i += sizeof(table.cust)) {
+            if (memcmp(table.cust, &tmp_block[i], sizeof(table.cust)))
+                continue;
+
+            fgetpos(fp, &cust_pos);
+            cust_pos = cust_pos + i - BLOCK_SIZE;
+            goto found;
+        }
+        fread(tmp_block, sizeof(char), BLOCK_SIZE, fp);
+    }
+
+  found:
+    if (!cust_pos)
+        return ParseError_CustNotFound;
+
+    memset(reinterpret_cast<void*>(&table), 0, sizeof(CustTable));
+    fsetpos(fp, &cust_pos);
+    if (!fread(reinterpret_cast<char*>(&table), 1, sizeof(CustTable), fp))
+        return ParseError_OpenReadFailed;
+
+
+    if (Clocks::GetIsMariko()) {
+        if (table.marikoEmcMaxClock)
+            Clocks::maxMemFreq = table.marikoEmcMaxClock * 1000;
+
+    } else {
+        if (table.eristaEmcMaxClock)
+            Clocks::maxMemFreq = table.eristaEmcMaxClock * 1000;
+
+    }
+
+
+    return ParseError_Success;
+}
+

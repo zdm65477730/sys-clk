@@ -16,10 +16,13 @@
 class Clocks
 {
   public:
+    static inline std::uint32_t maxMemFreq = 1600000000;
+    static bool GetIsMariko() { return isMariko; };
     static void Exit();
     static void Initialize();
     static void ResetToStock();
     static SysClkProfile GetCurrentProfile();
+    static std::uint32_t GetMaxMemFreq();
     static std::uint32_t GetCurrentHz(SysClkModule module);
     static void SetHz(SysClkModule module, std::uint32_t hz);
     static const char* GetProfileName(SysClkProfile profile, bool pretty);
@@ -29,6 +32,7 @@ class Clocks
     static std::uint32_t GetTemperatureMilli(SysClkThermalSensor sensor);
 
   protected:
+    static inline bool isMariko;
     static std::int32_t GetTsTemperatureMilli(TsLocation location);
     static PcvModule GetPcvModule(SysClkModule sysclkModule);
     static PcvModuleId GetPcvModuleId(SysClkModule sysclkModule);

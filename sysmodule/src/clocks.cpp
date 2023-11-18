@@ -11,6 +11,7 @@
 #include <nxExt.h>
 #include "clocks.h"
 #include "errors.h"
+#include "file_utils.h"
 
 void Clocks::GetList(SysClkModule module, std::uint32_t **outClocks)
 {
@@ -34,6 +35,29 @@ void Clocks::GetList(SysClkModule module, std::uint32_t **outClocks)
 void Clocks::Initialize()
 {
     Result rc = 0;
+    
+    u64 hardware_type = 0;
+    rc = splInitialize();
+    ASSERT_RESULT_OK(rc, "splInitialize");
+    rc = splGetConfig(SplConfigItem_HardwareType, &hardware_type);
+    ASSERT_RESULT_OK(rc, "splGetConfig");
+    splExit();
+
+    switch (hardware_type) {
+        case 0: // Icosa
+        case 1: // Copper
+            isMariko = false;
+            break;
+        case 2: // Hoag
+        case 3: // Iowa
+        case 4: // Calcio
+        case 5: // Aula
+            isMariko = true;
+            break;
+        default:
+            ERROR_THROW("Unknown hardware type: 0x%X!", hardware_type);
+            return;
+    }
 
     if(hosversionAtLeast(8,0,0))
     {
@@ -60,6 +84,9 @@ void Clocks::Initialize()
         rc = tcInitialize();
         ASSERT_RESULT_OK(rc, "tcInitialize");
     }
+    
+    FileUtils::ParseLoaderKip();
+
 }
 
 void Clocks::Exit()
@@ -233,6 +260,11 @@ void Clocks::SetHz(SysClkModule module, std::uint32_t hz)
         rc = pcvSetClockRate(Clocks::GetPcvModule(module), hz);
         ASSERT_RESULT_OK(rc, "pcvSetClockRate");
     }
+}
+
+std::uint32_t Clocks::GetMaxMemFreq()
+{
+    return maxMemFreq;
 }
 
 std::uint32_t Clocks::GetCurrentHz(SysClkModule module)
