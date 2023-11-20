@@ -30,9 +30,18 @@ GlobalOverrideGui::GlobalOverrideGui()
     }
 }
 
-void GlobalOverrideGui::openFreqChoiceGui(SysClkModule module, std::uint32_t* hzList)
+void GlobalOverrideGui::openFreqChoiceGui(SysClkModule module)
 {
-    tsl::changeTo<FreqChoiceGui>(this->context->overrideFreqs[module], hzList, [this, module](std::uint32_t hz) {
+    std::uint32_t hzList[SYSCLK_FREQ_LIST_MAX];
+    std::uint32_t hzCount;
+    Result rc = sysclkIpcGetFreqList(module, &hzList[0], SYSCLK_FREQ_LIST_MAX, &hzCount);
+    if(R_FAILED(rc))
+    {
+        FatalGui::openWithResultCode("sysclkIpcGetFreqList", rc);
+        return;
+    }
+
+    tsl::changeTo<FreqChoiceGui>(this->context->overrideFreqs[module], hzList, hzCount, [this, module](std::uint32_t hz) {
         Result rc = sysclkIpcSetOverride(module, hz);
         if(R_FAILED(rc))
         {
@@ -75,15 +84,16 @@ void GlobalOverrideGui::openProfileChoiceGui(int configNumber, std::uint32_t* pr
     });
 }
 
-void GlobalOverrideGui::addModuleListItem(SysClkModule module, std::uint32_t* hzList)
+
+void GlobalOverrideGui::addModuleListItem(SysClkModule module)
 {
     tsl::elm::ListItem* listItem = new tsl::elm::ListItem(sysclkFormatModule(module, true));
-    listItem->setValue(formatListFreqMhz(0));
+    listItem->setValue(formatListFreqMHz(0));
 
-    listItem->setClickListener([this, module, hzList](u64 keys) {
+    listItem->setClickListener([this, module](u64 keys) {
         if((keys & HidNpadButton_A) == HidNpadButton_A)
         {
-            this->openFreqChoiceGui(module, hzList);
+            this->openFreqChoiceGui(module);
             return true;
         }
 
@@ -160,15 +170,15 @@ void GlobalOverrideGui::addCustomToggleListItem(int configNumber,std::string sho
 
 void GlobalOverrideGui::listUI()
 {
-    this->addModuleListItem(SysClkModule_CPU, &sysclk_g_freq_table_cpu_hz[0]);
-    this->addModuleListItem(SysClkModule_GPU, &sysclk_g_freq_table_gpu_hz[0]);
-    this->addModuleListItem(SysClkModule_MEM, &sysclk_g_freq_table_mem_hz[0]);
-    //added 5 custom configs
-    this->addCustomToggleListItem(3,"Uncapped GPU");
-    this->addCustomListItem(4,"Min. profile",&sysclk_g_profile_table[0]);
-    this->addCustomToggleListItem(5,"CPU to 1785 in boost");
-    this->addCustomToggleListItem(6,"GPU to 76 in boost");
-    this->addCustomToggleListItem(7,"Override MEM to MAX");
+    this->addModuleListItem(SysClkModule_CPU);
+    this->addModuleListItem(SysClkModule_GPU);
+    this->addModuleListItem(SysClkModule_MEM);
+    //added 3 custom configs
+    this->addCustomToggleListItem(5,"Uncapped GPU");
+    this->addCustomToggleListItem(6,"Override MEM to MAX");
+    this->addCustomListItem(7,"Min. profile",&sysclk_g_profile_table[0]);
+
+
 }
 
 void GlobalOverrideGui::refresh()
@@ -188,10 +198,10 @@ void GlobalOverrideGui::refresh()
         
 
         
-        for(std::uint16_t m = 3; m < SysClkConfigValue_EnumMax; m++)
+        for(std::uint16_t m = 5; m < SysClkConfigValue_EnumMax; m++)
         {
             
-            if(m == 4) {
+            if(m == (SysClkConfigValue_EnumMax - 1)) {
 
                 sysclkIpcGetConfigValues(&this->configValues);
             

@@ -45,7 +45,7 @@ class FileUtils
     static bool IsInitialized();
     static bool IsLogEnabled();
     static void InitializeAsync();
-    static void LogLine(const char *format, ...);
+    static void LogLine(const char* format, ...);
     static void WriteContextToCsv(const SysClkContext* context);
     static void ParseLoaderKip();
   protected:

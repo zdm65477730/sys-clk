@@ -21,6 +21,7 @@
 #pragma once
 
 #include <map>
+#include <vector>
 #include <numeric>
 #include "../client.h"
 
@@ -30,13 +31,14 @@ class SysClkShimServer
         SysClkShimServer();
         void SetContextApplicationId(u64 tid);
         void SetContextHz(SysClkModule module, u32 hz);
+        void SetContextRealHz(SysClkModule module, u32 hz);
         void SetContextTemp(SysClkThermalSensor sensor, u32 temp);
         void SetContextProfile(SysClkProfile profile);
         void SetContextEnabled(bool enabled);
         void SetContextOverride(SysClkModule module, u32 hz);
         void CopyContext(SysClkContext* out_context);
         void SetProfile(uint64_t applicationId, SysClkModule module, SysClkProfile profile, u32 mhz);
-        u32 GetProfileMhz(uint64_t applicationId, SysClkModule module, SysClkProfile profile);
+        u32 GetProfileMHz(uint64_t applicationId, SysClkModule module, SysClkProfile profile);
         void GetProfiles(u64 applicationId, SysClkTitleProfileList* out_profiles);
         void SetProfiles(u64 applicationId, SysClkTitleProfileList* profiles);
         u8 CountProfiles(u64 applicationId);
@@ -44,9 +46,12 @@ class SysClkShimServer
         void SetConfigValue(SysClkConfigValue kval, u64 val);
         void GetConfigValues(SysClkConfigValueList* out_configValues);
         void SetConfigValues(SysClkConfigValueList* configValues);
+        void AddFreq(SysClkModule module, u32 hz);
+        void GetFreqList(SysClkModule module, u32* list, u32 maxCount, u32* outCount);
 
     protected:
         SysClkContext context;
+        std::vector<u32> freqs[SysClkModule_EnumMax];
         std::map<std::tuple<u64, SysClkModule, SysClkProfile>, u32> store;
         u64 configValues[SysClkConfigValue_EnumMax];
 };

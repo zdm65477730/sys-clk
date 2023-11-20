@@ -9,7 +9,7 @@
  */
 
 #include "file_utils.h"
-#include "clocks.h"
+#include "board.h"
 #include <dirent.h>
 #include <nxExt.h>
 #include "errors.h"
@@ -22,7 +22,7 @@ static std::uint64_t g_last_flag_check = 0;
 
 extern "C" void __libnx_init_time(void);
 
-static void _FileUtils_InitializeThreadFunc(void *args)
+static void _FileUtils_InitializeThreadFunc(void* args)
 {
     FileUtils::Initialize();
 }
@@ -32,19 +32,19 @@ bool FileUtils::IsInitialized()
     return g_has_initialized;
 }
 
-void FileUtils::LogLine(const char *format, ...)
+void FileUtils::LogLine(const char* format, ...)
 {
+    std::scoped_lock lock{g_log_mutex};
+
     va_list args;
     va_start(args, format);
     if (g_has_initialized)
     {
-        g_log_mutex.Lock();
-
         FileUtils::RefreshFlags(false);
 
         if(g_log_enabled)
         {
-            FILE *file = fopen(FILE_LOG_FILE_PATH, "a");
+            FILE* file = fopen(FILE_LOG_FILE_PATH, "a");
 
             if (file)
             {
@@ -58,8 +58,6 @@ void FileUtils::LogLine(const char *format, ...)
                 fclose(file);
             }
         }
-
-        g_log_mutex.Unlock();
     }
     va_end(args);
 }
@@ -68,7 +66,7 @@ void FileUtils::WriteContextToCsv(const SysClkContext* context)
 {
     std::scoped_lock lock{g_csv_mutex};
 
-    FILE *file = fopen(FILE_CONTEXT_CSV_PATH, "a");
+    FILE* file = fopen(FILE_CONTEXT_CSV_PATH, "a");
 
     if (file)
     {
@@ -85,6 +83,16 @@ void FileUtils::WriteContextToCsv(const SysClkContext* context)
             for (unsigned int sensor = 0; sensor < SysClkThermalSensor_EnumMax; sensor++)
             {
                 fprintf(file, ",%s_milliC", sysclkFormatThermalSensor((SysClkThermalSensor)sensor, false));
+            }
+
+            for (unsigned int module = 0; module < SysClkModule_EnumMax; module++)
+            {
+                fprintf(file, ",%s_real_hz", sysclkFormatModule((SysClkModule)module, false));
+            }
+
+            for (unsigned int sensor = 0; sensor < SysClkPowerSensor_EnumMax; sensor++)
+            {
+                fprintf(file, ",%s_mw", sysclkFormatPowerSensor((SysClkPowerSensor)sensor, false));
             }
 
             fprintf(file, "\n");
@@ -105,6 +113,16 @@ void FileUtils::WriteContextToCsv(const SysClkContext* context)
             fprintf(file, ",%d", context->temps[sensor]);
         }
 
+        for (unsigned int module = 0; module < SysClkModule_EnumMax; module++)
+        {
+            fprintf(file, ",%d", context->realFreqs[module]);
+        }
+
+        for (unsigned int sensor = 0; sensor < SysClkPowerSensor_EnumMax; sensor++)
+        {
+            fprintf(file, ",%d", context->power[sensor]);
+        }
+
         fprintf(file, "\n");
         fclose(file);
     }
@@ -118,7 +136,7 @@ void FileUtils::RefreshFlags(bool force)
         return;
     }
 
-    FILE *file = fopen(FILE_LOG_FLAG_PATH, "r");
+    FILE* file = fopen(FILE_LOG_FLAG_PATH, "r");
     if (file)
     {
         g_log_enabled = true;
@@ -314,13 +332,13 @@ Result FileUtils::CustParser(const char* filepath, size_t filesize) {
         return ParseError_OpenReadFailed;
 
 
-    if (Clocks::GetIsMariko()) {
+    if (Board::GetIsMariko()) {
         if (table.marikoEmcMaxClock)
-            Clocks::maxMemFreq = table.marikoEmcMaxClock * 1000;
+            Board::maxMemFreq = table.marikoEmcMaxClock * 1000;
 
     } else {
         if (table.eristaEmcMaxClock)
-            Clocks::maxMemFreq = table.eristaEmcMaxClock * 1000;
+            Board::maxMemFreq = table.eristaEmcMaxClock * 1000;
 
     }
 

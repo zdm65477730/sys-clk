@@ -11,15 +11,17 @@
 #pragma once
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-#include "sysclk/ipc.h"
-#include "sysclk/board.h"
-#include "sysclk/clock_manager.h"
-#include "sysclk/apm.h"
-#include "sysclk/config.h"
-#include "sysclk/errors.h"
+#include <switch.h>
+
+u32 t210ClkCpuFreq(void);
+u32 t210ClkMemFreq(void);
+u32 t210ClkGpuFreq(void);
+u32 t210EmcLoadAll(void);
+u32 t210EmcLoadCpu(void);
 
 #ifdef __cplusplus
 }

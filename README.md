@@ -149,7 +149,9 @@ The `[values]` section allows you to alter timings in sys-clk, you should not ne
 
 | Key                     | Desc                                                                          | Default |
 |:-----------------------:|-------------------------------------------------------------------------------|:-------:|
-|**temp_log_interval_ms** | Defines how often sys-clk log temperatures, in milliseconds (`0` to disable)  | 0 ms    |
+|**temp_log_interval_ms** | Defines how often sys-clk logs temperatures, in milliseconds (`0` to disable) | 0 ms    |
+|**freq_log_interval_ms** | Defines how often sys-clk logs real freqs, in milliseconds (`0` to disable)   | 0 ms    |
+|**power_log_interval_ms**| Defines how often sys-clk logs power usage, in milliseconds (`0` to disable)  | 0 ms    |
 |**csv_write_interval_ms**| Defines how often sys-clk writes to the CSV, in milliseconds (`0` to disable) | 0 ms    |
 |**poll_interval_ms**     | Defines how fast sys-clk checks and applies profiles, in milliseconds         | 300 ms  |
 
@@ -162,7 +164,8 @@ To protect the battery from excessive strain, clocks requested from config may b
 |:-----:|:--------:|:--------------:|:-------------------:|:------:|
 |**MEM**| -        | -              | -                   | -      |
 |**CPU**| -        | -              | -                   | -      |
-|**GPU**| 460      | 768            | -                   | -      |
+|**GPU**| 460 MHz* | 768 MHz        | -                   | -      |
+*\* GPU handheld max for Mariko is increased to 614 MHz*
 
 ## Clock table (MHz)
 
@@ -202,5 +205,5 @@ To protect the battery from excessive strain, clocks requested from config may b
 * 76 → boost mode
 
 **Notes:**
-1. GPU overclock is capped at 460Mhz in handheld and capped at 768Mhz if charging, unless you're using the official charger.
+1. GPU overclock is capped at 460MHz in handheld and capped at 768MHz if charging, unless you're using the official charger.
 2. Clocks higher than 768MHz need the official charger is plugged in.
