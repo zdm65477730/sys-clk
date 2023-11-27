@@ -27,12 +27,12 @@
 * Set CPU to 1785 MHz during boost
     1. Let boost mode override sys-clk value set for CPU during boost mode with the default 1785 MHz.
     2. In most cases you want to enable this to get the best loading times. Don't enable if you want to use CPU clocks over 1785 MHz also during boost mode (you need to use a CPU patch to achieve this which most of people don't even have).
-    3. Possible values: `Yes` or `No`.
+    3. Now always enabled.
 
 * Set GPU to 76 MHz during boost
     1. Let boost mode override sys-clk value set for GPU during boost mode with the default 76 MHz.
     2. In most cases you want to enable this to get the best out of your battery life. 
-    2. Possible values: `Yes` or `No`.
+    2. Now always enabled.
 
 * Override MEM to 1600 MHz
     1. Permanently override MEM to 1600 MHz (or higher MEM clock achieved with patching).
