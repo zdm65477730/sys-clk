@@ -33,7 +33,7 @@ AboutTab::AboutTab()
     // Subtitle
     brls::Label *subTitle = new brls::Label(
         brls::LabelStyle::REGULAR,
-        "Nintendo Switch overclocking / underclocking system module and frontend app by the RetroNX Team", 
+        "application/manager/mainframe/aboutTab/subtitleLabel"_i18n,
         true
     );
     subTitle->setHorizontalAlign(NVG_ALIGN_CENTER);
@@ -42,21 +42,17 @@ AboutTab::AboutTab()
     // Copyright
     brls::Label *copyright = new brls::Label(
         brls::LabelStyle::DESCRIPTION,
-        "System module licensed under the Beerware license\n" \
-        "Frontend app licensed under GPL-3.0\n" \
-        "\u00A9 2019 - 2020 natinusala, p-sam, m4xw",
+        "application/manager/mainframe/aboutTab/copyrightLabel"_i18n,
         true
     );
     copyright->setHorizontalAlign(NVG_ALIGN_CENTER);
     this->addView(copyright);
 
     // Links
-    this->addView(new brls::Header("Links and Resources"));
+    this->addView(new brls::Header("application/manager/mainframe/aboutTab/LinksAndResourcesHeader"_i18n));
     brls::Label *links = new brls::Label(
         brls::LabelStyle::SMALL,
-        "\uE016  User guide and code source can be found on our GitHub repository\n" \
-        "\uE016  The sys-clk manager is powered by Borealis, an hardware accelerated UI library\n" \
-        "\uE016  Join the RetroNX Discord server for support, to request features or just hang out!",
+        "application/manager/mainframe/aboutTab/linksLabel"_i18n,
         true
     );
     this->addView(links);

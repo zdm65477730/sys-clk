@@ -14,11 +14,80 @@
 #include "ui/gui/fatal_gui.h"
 #include "ui/gui/main_gui.h"
 
+using namespace tsl;
+
 class AppOverlay : public tsl::Overlay
 {
     public:
-        AppOverlay() {}
+        AppOverlay() {
+            std::string jsonStr = R"(
+                {
+                    "PluginName": "sys-clk",
+                    "SysclkIpcNotRunningFatalGuiText": "sys-clk is not running.\n\n\nMake sure sys-clk is installed and enabled correctly.",
+                    "SysclkIpcInitFailedFatalGuiText": "Can't connect to sys-clk.\n\n\nMake sure sys-clk is installed and enabled correctly.",
+                    "SysclkIpcVersionMismatchFatalGuiText": "Overlay is incompatible with the running sys-clk version.\n\n\nMake sure everything is installed and up to date.",
+                    "SysclkIpcSetOverrideFailedFatalGuiText": "sysclkIpcSetOverride",
+                    "SysclkIpcSetProfilesFailedFatalGuiText": "sysclkIpcSetProfiles",
+                    "SysclkIpcGetProfilesFailedFatalGuiText": "sysclkIpcGetProfiles",
+                    "SysclkIpcGetCurrentContextFailedFatalGuiText": "sysclkIpcGetCurrentContext",
+                    "DefaultFreqFarmatListText": "No change",
+                    "AppIdMismatchFatalGuiText": "Application changed while editing,\n\n\nthe running application has been changed.",
+                    "AppIDBaseMenuGuiText": "App ID:",
+                    "ProfileBaseMenuGuiText": "Profile:",
+                    "CPUBaseMenuGuiText": "CPU:",
+                    "GPUBaseMenuGuiText": "GPU:",
+                    "MemBaseMenuGuiText": "MEM:",
+                    "ChipBaseMenuGuiText": "Chip:",
+                    "PCBBaseMenuGuiText": "PCB:",
+                    "SkinBaseMenuGuiText": "Skin:",
+                    "CPUPrettySysclkFormatModuleText": "CPU",
+                    "CPUSysclkFormatModuleText": "cpu",
+                    "GPUPrettySysclkFormatModuleText": "GPU",
+                    "GPUSysclkFormatModuleText": "gpu",
+                    "MEMPrettySysclkFormatModuleText": "Memory",
+                    "MEMSysclkFormatModuleText": "mem",
+                    "SOCPrettySysclkFormatThermalSensorText": "SOC",
+                    "SOCSysclkFormatThermalSensorText": "soc",
+                    "PCBPrettySysclkFormatThermalSensorText": "PCB",
+                    "PCBSysclkFormatThermalSensorText": "pcb",
+                    "SkinPrettySysclkFormatThermalSensorText": "Skin",
+                    "SkinSysclkFormatThermalSensorText": "skin",
+                    "DockedPrettySysclkFormatProfileText": "Docked",
+                    "DockedSysclkFormatProfileText": "docked",
+                    "HandheldPrettySysclkFormatProfileText": "Handheld",
+                    "HandheldSysclkFormatProfileText": "handheld",
+                    "HandheldChargingPrettySysclkFormatProfileText": "Charging",
+                    "HandheldChargingSysclkFormatProfileText": "handheld_charging",
+                    "HandheldChargingUSBPrettySysclkFormatProfileText": "USB Charger",
+                    "HandheldChargingUSBSysclkFormatProfileText": "handheld_charging_usb",
+                    "HandheldChargingOfficialPrettySysclkFormatProfileText": "Official Charger",
+                    "HandheldChargingOfficialSysclkFormatProfileText": "handheld_charging_official",
+                    "FatalErrorFatalGuiText": "Fatal error",
+                    "ToggleListItemMainGuiText": "Enabled",
+                    "SysclkIpcSetEnabledFailedFatalGuiText": "sysclkIpcSetEnabled",
+                    "AppProfileListItemMainGuiText": "Edit profile",
+                    "AdvanceProfileCategoryHeaderMainGuiText": "Advance profile",
+                    "TempOverrideListItemMainGuiText": "Temp override",
+                    "SysclkIpcSetConfigValuesFailedFatalGuiText": "sysclkIpcSetConfigValues failed",
+                    "EnabledGlobalOverrideGuiToggleListItemText": "Yes",
+                    "DisabledGlobalOverrideGuiToggleListItemText": "No",
+                    "UncappedGPUGlobalOverrideGuiCustomToggleListItemText": "Uncapped GPU",
+                    "MinProfileGlobalOverrideGuiCustomToggleListItemText": "Min. profile",
+                    "Set1785MHzInCPUBoostGlobalOverrideGuiCustomToggleListItemText": "CPU to 1785 in boost",
+                    "Set76MHzInGPUBoostGlobalOverrideGuiCustomToggleListItemText": "GPU to 76 in boost",
+                    "OverrideMemTo1600MHzGlobalOverrideGuiCustomToggleListItemText": "Override MEM to 1600"
+                }
+            )";
+            std::string lanPath = std::string("sdmc:/switch/.overlays/lang/") + APPTITLE + "/";
+            fsdevMountSdmc();
+            tsl::hlp::doWithSmSession([&lanPath, &jsonStr]{
+                tsl::tr::InitTrans(lanPath, jsonStr);
+            });
+            fsdevUnmountDevice("sdmc");
+        }
         ~AppOverlay() {}
+
+        virtual void initServices() override {}
 
         virtual void exitServices() override {
             sysclkIpcExit();
@@ -34,10 +103,7 @@ class AppOverlay : public tsl::Overlay
             if(!sysclkIpcRunning())
             {
                 return initially<FatalGui>(
-                    "sys-clk is not running.\n\n"
-                    "\n"
-                    "Please make sure it is correctly\n\n"
-                    "installed and enabled.",
+                    "SysclkIpcNotRunningFatalGuiText"_tr,
                     ""
                 );
             }
@@ -45,10 +111,7 @@ class AppOverlay : public tsl::Overlay
             if(R_FAILED(sysclkIpcInitialize()) || R_FAILED(sysclkIpcGetAPIVersion(&apiVersion)))
             {
                 return initially<FatalGui>(
-                    "Could not connect to sys-clk.\n\n"
-                    "\n"
-                    "Please make sure it is correctly\n\n"
-                    "installed and enabled.",
+                    "SysclkIpcInitFailedFatalGuiText"_tr,
                     ""
                 );
             }
@@ -56,11 +119,7 @@ class AppOverlay : public tsl::Overlay
             if(SYSCLK_IPC_API_VERSION != apiVersion)
             {
                 return initially<FatalGui>(
-                    "Overlay not compatible with\n\n"
-                    "the running sys-clk version.\n\n"
-                    "\n"
-                    "Please make sure everything is\n\n"
-                    "installed and up to date.",
+                    "SysclkIpcVersionMismatchFatalGuiText"_tr,
                     ""
                 );
             }

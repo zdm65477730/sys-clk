@@ -52,40 +52,7 @@ Result sysclkIpcInitialize()
         g_server->SetProfile(0x010000000000F002, SysClkModule_MEM, SysClkProfile_Handheld, 1600);
 
         g_server->SetConfigValue(SysClkConfigValue_CsvWriteIntervalMs, 5000);
-
-        g_server->AddFreq(SysClkModule_MEM, 665600000);
-        g_server->AddFreq(SysClkModule_MEM, 800000000);
-        g_server->AddFreq(SysClkModule_MEM, 1065600000);
-        g_server->AddFreq(SysClkModule_MEM, 1331200000);
-        g_server->AddFreq(SysClkModule_MEM, 1600000000);
-
-        g_server->AddFreq(SysClkModule_CPU, 612000000);
-        g_server->AddFreq(SysClkModule_CPU, 714000000);
-        g_server->AddFreq(SysClkModule_CPU, 816000000);
-        g_server->AddFreq(SysClkModule_CPU, 918000000);
-        g_server->AddFreq(SysClkModule_CPU, 1020000000);
-        g_server->AddFreq(SysClkModule_CPU, 1122000000);
-        g_server->AddFreq(SysClkModule_CPU, 1224000000);
-        g_server->AddFreq(SysClkModule_CPU, 1326000000);
-        g_server->AddFreq(SysClkModule_CPU, 1428000000);
-        g_server->AddFreq(SysClkModule_CPU, 1581000000);
-        g_server->AddFreq(SysClkModule_CPU, 1683000000);
-        g_server->AddFreq(SysClkModule_CPU, 1785000000);
-
-        g_server->AddFreq(SysClkModule_GPU, 76800000);
-        g_server->AddFreq(SysClkModule_GPU, 153600000);
-        g_server->AddFreq(SysClkModule_GPU, 230400000);
-        g_server->AddFreq(SysClkModule_GPU, 307200000);
-        g_server->AddFreq(SysClkModule_GPU, 384000000);
-        g_server->AddFreq(SysClkModule_GPU, 460800000);
-        g_server->AddFreq(SysClkModule_GPU, 537600000);
-        g_server->AddFreq(SysClkModule_GPU, 614400000);
-        g_server->AddFreq(SysClkModule_GPU, 691200000);
-        g_server->AddFreq(SysClkModule_GPU, 768000000);
-        g_server->AddFreq(SysClkModule_GPU, 844800000);
-        g_server->AddFreq(SysClkModule_GPU, 921600000);
     }
-
     return 0;
 }
 
@@ -172,13 +139,6 @@ Result sysclkIpcSetConfigValues(SysClkConfigValueList* configValues)
     return 0;
 }
 
-
-Result sysclkIpcGetFreqList(SysClkModule module, u32* list, u32 maxCount, u32* outCount)
-{
-    g_server->GetFreqList(module, list, maxCount, outCount);
-    return 0;
-}
-
 SysClkShimServer::SysClkShimServer()
 {
     this->store = std::map<std::tuple<u64, SysClkModule, SysClkProfile>, u32>();
@@ -186,9 +146,6 @@ SysClkShimServer::SysClkShimServer()
     this->SetContextHz(SysClkModule_CPU, 0);
     this->SetContextHz(SysClkModule_GPU, 0);
     this->SetContextHz(SysClkModule_MEM, 0);
-    this->SetContextRealHz(SysClkModule_CPU, 0);
-    this->SetContextRealHz(SysClkModule_GPU, 0);
-    this->SetContextRealHz(SysClkModule_MEM, 0);
     this->SetContextOverride(SysClkModule_CPU, 0);
     this->SetContextOverride(SysClkModule_GPU, 0);
     this->SetContextOverride(SysClkModule_MEM, 0);
@@ -213,14 +170,6 @@ void SysClkShimServer::SetContextHz(SysClkModule module, u32 hz)
     if(module < SysClkModule_EnumMax)
     {
         this->context.freqs[module] = hz;
-    }
-}
-
-void SysClkShimServer::SetContextRealHz(SysClkModule module, u32 hz)
-{
-    if(module < SysClkModule_EnumMax)
-    {
-        this->context.realFreqs[module] = hz;
     }
 }
 
@@ -264,7 +213,7 @@ void SysClkShimServer::SetProfile(uint64_t applicationId, SysClkModule module, S
     }
 }
 
-u32 SysClkShimServer::GetProfileMHz(uint64_t applicationId, SysClkModule module, SysClkProfile profile)
+u32 SysClkShimServer::GetProfileMhz(uint64_t applicationId, SysClkModule module, SysClkProfile profile)
 {
     std::tuple<u64, SysClkModule, SysClkProfile> key = std::make_tuple(applicationId, module, profile);
     std::map<std::tuple<u64, SysClkModule, SysClkProfile>, u32>::iterator it = this->store.find(key);
@@ -282,7 +231,7 @@ void SysClkShimServer::GetProfiles(u64 applicationId, SysClkTitleProfileList* ou
     {
         for(unsigned int module = 0; module < SysClkModule_EnumMax; module++)
         {
-            out_profiles->mhzMap[profile][module] = this->GetProfileMHz(applicationId, (SysClkModule)module, (SysClkProfile)profile);
+            out_profiles->mhzMap[profile][module] = this->GetProfileMhz(applicationId, (SysClkModule)module, (SysClkProfile)profile);
         }
     }
 }
@@ -360,37 +309,5 @@ void SysClkShimServer::SetConfigValues(SysClkConfigValueList* configValues)
     for(unsigned int kval = 0; kval < SysClkConfigValue_EnumMax; kval++)
     {
         this->SetConfigValue((SysClkConfigValue)kval, configValues->values[kval]);
-    }
-}
-
-void SysClkShimServer::AddFreq(SysClkModule module, u32 hz)
-{
-    if(SYSCLK_ENUM_VALID(SysClkModule, module))
-    {
-        this->freqs[module].push_back(hz);
-    }
-}
-
-
-void SysClkShimServer::GetFreqList(SysClkModule module, u32* list, u32 maxCount, u32* outCount)
-{
-    u32 count = 0;
-
-    if(SYSCLK_ENUM_VALID(SysClkModule, module))
-    {
-        std::vector<u32>::iterator iter = this->freqs[module].begin();
-
-        while(iter < this->freqs[module].end() && *outCount < maxCount)
-        {
-            *list = *iter;
-            list++;
-            iter++;
-            count++;
-        }
-    }
-
-    if(outCount)
-    {
-        *outCount = count;
     }
 }

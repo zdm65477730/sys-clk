@@ -20,8 +20,6 @@
 
 #pragma once
 
-#include <borealis.hpp>
-
 #include "utils.h"
 
 enum class LogoStyle

@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "board.h"
+#include "clocks.h"
 
 typedef struct {
     uint32_t id;

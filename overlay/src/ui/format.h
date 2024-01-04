@@ -11,29 +11,51 @@
 #pragma once
 
 #include <cstdio>
+#include <tesla.hpp>
+using namespace tsl;
 
-#define FREQ_DEFAULT_TEXT "Do not override"
-
-static inline std::string formatListFreqMHz(std::uint32_t mhz)
+static inline std::string formatListFreqMhz(std::uint32_t mhz)
 {
     if(mhz == 0)
     {
-        return FREQ_DEFAULT_TEXT;
+        return "DefaultFreqFarmatListText"_tr;
     }
 
     char buf[10];
-    return std::string(buf, snprintf(buf, sizeof(buf), "%u MHz", mhz));
+    return std::string(buf, snprintf(buf, sizeof(buf), "%u Mhz", mhz));
 }
 
 static inline std::string formatListProfile(std::uint32_t profile)
 {
     if(profile == 0)
     {
-        return FREQ_DEFAULT_TEXT;
+        return "DefaultFreqFarmatListText"_tr;
     }
 
-    return sysclkFormatProfile((SysClkProfile)profile,true);
+	std::string profileFormat{" "};
+    bool pretty = true;
+    switch(profile)
+    {
+        case SysClkProfile_Docked:
+            profileFormat = pretty ? "DockedPrettySysclkFormatProfileText"_tr : "DockedSysclkFormatProfileText"_tr;
+            break;
+        case SysClkProfile_Handheld:
+            profileFormat = pretty ? "HandheldPrettySysclkFormatProfileText"_tr : "HandheldSysclkFormatProfileText"_tr;
+            break;
+        case SysClkProfile_HandheldCharging:
+            profileFormat = pretty ? "HandheldChargingPrettySysclkFormatProfileText"_tr : "HandheldChargingSysclkFormatProfileText"_tr;
+            break;
+        case SysClkProfile_HandheldChargingUSB:
+            profileFormat = pretty ? "HandheldChargingUSBPrettySysclkFormatProfileText"_tr : "HandheldChargingUSBSysclkFormatProfileText"_tr;
+            break;
+        case SysClkProfile_HandheldChargingOfficial:
+            profileFormat = pretty ? "HandheldChargingOfficialPrettySysclkFormatProfileText"_tr : "HandheldChargingOfficialSysclkFormatProfileText"_tr;
+            break;
+        default:
+            break;
+    }
+
+	return profileFormat;
 }
 
-static inline std::string formatListFreqHz(std::uint32_t hz) { return formatListFreqMHz(hz / 1000000); }
-
+static inline std::string formatListFreqHz(std::uint32_t hz) { return formatListFreqMhz(hz / 1000000); }

@@ -38,7 +38,7 @@ manager_include = include_directories(
 
 sys_clk_manager = executable(
     'sys-clk-manager',
-    [ source_files, borealis_files, ipc_files ],
+    [ source_files, borealis_files, common_files, ipc_files ],
     dependencies : borealis_dependencies,
     install: true,
     include_directories: [borealis_include, manager_include],

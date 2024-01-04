@@ -14,14 +14,16 @@
 #include "app_profile_gui.h"
 #include "global_override_gui.h"
 
+using namespace tsl;
+
 void MainGui::listUI()
 {
-    this->enabledToggle = new tsl::elm::ToggleListItem("Enable", false);
+    this->enabledToggle = new tsl::elm::ToggleListItem("ToggleListItemMainGuiText"_tr, false);
     enabledToggle->setStateChangedListener([this](bool state) {
         Result rc = sysclkIpcSetEnabled(state);
         if(R_FAILED(rc))
         {
-            FatalGui::openWithResultCode("sysclkIpcSetEnabled", rc);
+            FatalGui::openWithResultCode("SysclkIpcSetEnabledFailedFatalGuiText"_tr, rc);
         }
 
         this->lastContextUpdate = armGetSystemTick();
@@ -29,7 +31,7 @@ void MainGui::listUI()
     });
     this->listElement->addItem(this->enabledToggle);
 
-    tsl::elm::ListItem* appProfileItem = new tsl::elm::ListItem("Edit app profile");
+    tsl::elm::ListItem* appProfileItem = new tsl::elm::ListItem("AppProfileListItemMainGuiText"_tr);
     appProfileItem->setClickListener([this](u64 keys) {
         if((keys & HidNpadButton_A) == HidNpadButton_A && this->context)
         {
@@ -41,9 +43,9 @@ void MainGui::listUI()
     });
     this->listElement->addItem(appProfileItem);
 
-    this->listElement->addItem(new tsl::elm::CategoryHeader("Advanced"));
+    this->listElement->addItem(new tsl::elm::CategoryHeader("AdvanceProfileCategoryHeaderMainGuiText"_tr));
 
-    tsl::elm::ListItem* globalOverrideItem = new tsl::elm::ListItem("Temporary overrides");
+    tsl::elm::ListItem* globalOverrideItem = new tsl::elm::ListItem("TempOverrideListItemMainGuiText"_tr);
     globalOverrideItem->setClickListener([this](u64 keys) {
         if((keys & HidNpadButton_A) == HidNpadButton_A)
         {

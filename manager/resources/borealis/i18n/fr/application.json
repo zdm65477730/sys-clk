@@ -1,0 +1,174 @@
+{
+    "manager": {
+        "utils": {
+            "doNotOverride": "Do not override",
+            "errorResultSwitch": "[0x%x] %s failed - %04d-%04d",
+            "errorResultNoneSwitch": "[0x%x] %s failed - xxxx-xxxx",
+            "sysclkFormatConfigValuePollingIntervalPretty": "Polling Interval (ms)",
+            "sysclkFormatConfigValuePollingInterval": "poll_interval_ms",
+            "sysclkFormatConfigValueTemperatureLoggingIntervalPretty": "Temperature logging interval (ms)",
+            "sysclkFormatConfigValueTemperatureLoggingInterval": "temp_log_interval_ms",
+            "sysclkFormatConfigValueCSVWriteIntervalPretty": "CSV write interval (ms)",
+            "sysclkFormatConfigValueCSVWriteInterval": "csv_write_interval_ms",
+            "sysclkFormatConfigValueGPUNoLimitedPretty": "GPU No limited (no need to change profile)",
+            "sysclkFormatConfigValueGPUNoLimited": "uncapped_gpu_enabled",
+            "sysclkFormatConfigValueLowestFakeConfigPretty": "Lowest profile (fake profile)",
+            "sysclkFormatConfigValueLowestFakeConfig": "fake_profile_mode_enabled",
+            "sysclkFormatConfigValueOverrideCPUBoostPretty": "Override CPU to 1785MHz during boost",
+            "sysclkFormatConfigValueOverrideCPUBoost": "override_cpu_boost_enabled",
+            "sysclkFormatConfigValueOverrideGPUBoostPretty": "Override GPU to 76MHz during boost",
+            "sysclkFormatConfigValueOverrideGPUBoost": "override_gpu_boost_enabled",
+            "sysclkFormatConfigValueOverrideMEMPretty": "Override MEM to 1600MHz",
+            "sysclkFormatConfigValueOverrideMEM": "override_mem_enabled",
+            "formatProfileDockedPretty": "Docked",
+            "formatProfileDocked": "docked",
+            "formatProfileHandheldPretty": "Handheld",
+            "formatProfileHandheld": "handheld",
+            "formatProfileHandheldChargingPretty": "Handheld (Charging)",
+            "formatProfileHandheldCharging": "handheld_charging",
+            "formatProfileHandheldChargingUSBPretty": "Handheld (Charging: USB)",
+            "formatProfileHandheldChargingUSB": "handheld_charging_usb",
+            "formatProfileHandheldChargingOfficialPretty": "Handheld (Charging: Official)",
+            "formatProfileHandheldChargingOfficial": "handheld_charging_official",
+            "createFreqListItem": {
+                "moduleCPU": "CPU Frequency",
+                "moduleGPU": "GPU Frequency",
+                "moduleMEM": "MEM Frequency"
+            }
+        },
+
+        "logo": {
+            "nameLabelStyle": "sys-clk",
+            "headerDescribeLabelStyle": "manager"
+        },
+
+        "main": {
+            "initError": "Unable to init Borealis application",
+            "loadFontError": "failed to load logo font",
+            "sysclkIpcNotRunningError": "sys-clk is not running",
+            "sysclkIpcNotRunningCrash": "sys-clk does not seem to be running, please check that it is correctly installed and enabled.",
+            "sysclkIpcInitError": "Unable to initialize sys-clk IPC client",
+            "sysclkIpcInitCrash": "Could not connect to sys-clk, please check that it is correctly installed and enabled.",
+            "sysclkIpcVersionMismatchError": "sys-clk IPC API version mismatch (expected: %u; actual: %u)",
+            "sysclkIpcVersionMismatchCrash": "The manager is not compatible with the currently running sysmodule of sys-clk, please check that you have correctly installed the latest version (reboot?).",
+            "sysclkIpcVersionGetError": "Unable to get sys-clk version string",
+            "sysclkIpcVersionGetUnknown": "[unknown]"
+        },
+
+        "refreshtask": {
+            "sysclkIpcGetCurrentContextOnStartError": "Unable to get context",
+            "sysclkIpcGetCurrentContextOnStartErrorResult": "sysclkIpcGetCurrentContext",
+            "sysclkIpcGetCurrentContextRunError": "Unable to refresh context"
+        },
+
+        "mainframe": {
+            "statusTab": {
+                "name": "Status",
+                "sysclkIpcGetCurrentContextError": "Unable to get context",
+                "sysclkIpcGetCurrentContextErrorResult": "sysclkIpcGetCurrentContext",
+                "sysclkIpcGetCurrentContextCrash": "Could not get the current sys-clk context, please check that it is correctly installed and enabled.",
+                "serviceEnabledListItem": "Enable service",
+                "serviceEnabledListItemText": "Yes",
+                "serviceDisenabledListItemText": "No",
+                "newServiceStateInfo": "New service state = %d",
+                "sysclkIpcSetEnabledError": "Unable to set enabled state",
+                "sysclkIpcSetEnabledErrorResult": "sysclkIpcSetEnabled",
+                "hardwareHeader": "Hardware",
+                "cpuStatusCell": "CPU",
+                "gpuStatusCell": "GPU",
+                "memStatusCell": "MEM",
+                "skinStatusCell": "Skin",
+                "socStatusCell": "SOC",
+                "pcbStatusCell": "PCB",
+                "systemHeader": "System",
+                "profileStatusCell": "Profile",
+                "tidStatusCell": "Application ID",
+                "updateWarningForProfileHandheldLabel": "\uE140  Maximum GPU frequency is ",
+                "updateWarningResultForProfileHandheldLabel": " because you're in handheld mode.",
+                "updateWarningForProfileHandheldChargingUSBLabel": "\uE140  Maximum GPU frequency is ",
+                "updateWarningResultForProfileHandheldChargingUSBLabel": " because you're using an unofficial charger type."
+            },
+            "applicationProfilesTab": {
+                "name": "Application Profiles",
+                "filterToggleListItem": "Show applications with no profile",
+                "filterEnabledToggleListItemText": "Yes",
+                "filterDisenabledToggleListItemText": "No",
+                "globalDefaultProfileListItem": "Global default profile",
+                "globalDefaultProfileDescriptionListItemText": "The application global default configuration does not have a specific configuration. If there is no application configuration at all, it can also be used as a permanent global overclocking configuration.",
+                "nsListApplicationRecordErrorRsult": "nsListApplicationRecord",
+                "nsGetApplicationControlDataErrorRsult": "nsGetApplicationControlData",
+                "nacpGetLanguageEntryErrorRsult": "nacpGetLanguageEntry",
+                "sysclkIpcGetProfileCountErrorRsult": "sysclkIpcGetProfileCount",
+                "itemEmptyUpdateEmptyListLabelText": "\uE140  You don't have any application installed on your Nintendo Switch.",
+                "profileItemsEmptyUpdateEmptyListLabelText": "\uE140  You don't have any application with a defined profile at the moment.",
+                "sysclkIpcGetProfileCountErrorResult": "sysclkIpcGetProfileCount"
+            },
+            "advancedSettingsTab": {
+                "name": "Advanced Settings",
+                "sysclkIpcGetCurrentContextError": "Unable to get context",
+                "sysclkIpcGetCurrentContextErrorResult": "sysclkIpcGetCurrentContext",
+                "sysclkIpcGetCurrentContextCrash": "Could not get the current sys-clk context, please check that it is correctly installed and enabled.",
+                "disclaimerLabel": "\uE140  Please only alter these settings if you know what you are doing.",
+                "temporaryOverridesHeader": "Temporary overrides",
+                "unableUpdateCPUOverrideError": "Unable to update CPU Override",
+                "unableUpdateGPUOverrideError": "Unable to update GPU Override",
+                "unableUpdateMEMOverrideError": "Unable to update MEM Override",
+                "sysclkIpcRemoveOverrideErrorResult": "sysclkIpcRemoveOverride",
+                "sysclkIpcSetOverrideErrorResult": "sysclkIpcSetOverride",
+                "configurationHeader": "Configuration",
+                "invalidNegativeValueConfigSaveFailedNotify": "\uE5CD Couldn't save configuration: invalid value (is negative)",
+                "invalidValueConfigSaveFailedNotify": "\uE5CD Couldn't save configuration: invalid value",
+                "configSavedNotify": "\uE14B Configuration saved",
+                "unableParseConfigValueError": "Unable to parse config value %s: %s",
+                "configItem2EnabledToggleListItemText": "Yes",
+                "configItem2DisabledToggleListItemText": "No",
+                "notesLable": "The minimum configuration selected will ensure that your device remains at least at that minimum level. It is suitable for people who have a high clock in charging configurations and sometimes want to activate these configurations without a charger (for example, selecting \"Official Charging Mode\" will ensure that your device configuration remains at least in \"Official Charging Mode\", even if your device is actually in \"Handheld Mode\"). If the actual configuration is higher than the minimum configuration, the selected minimum configuration does not degrade your actual configuration (for example, selecting \"charging mode\" does not do anything when inserting a sled (because you are already in a higher configuration).",
+                "csvUpdateIntervalDescription": "How often to update /config/sys-clk/context.csv (in milliseconds)\n\uE016  Use 0 to disable",
+                "temperatureLogIntervalDescription": "How often to log temperatures (in milliseconds)\n\uE016  Use 0 to disable",
+                "pollingIntervalDescription": "How fast to check and apply profiles (in milliseconds)"
+            },
+            "cheatSheetTab": {
+                "name": "Cheat Sheet",
+                "cpuHeader": "CPU Clocks",
+                "cpuMaxTableRow": "Maximum",
+                "cpuMaxValueTableRow": "1785 MHz",
+                "cpuOfficialDockedAndHandheldTableRow": "Official Docked and Handheld",
+                "cpuOfficialDockedAndHandheldValueTableRow": "1020 MHz",
+                "gpuHeader": "GPU Clocks",
+                "gpuMaxTableRow": "Maximum",
+                "gpuMaxValueTableRow": "921 MHz",
+                "gpuOfficialDockedTableRow": "Official Docked",
+                "gpuOfficialDockedValueTableRow": "768 MHz",
+                "gpuMaximumHandheldTableRow": "Maximum Handheld",
+                "gpuMaximumHandheldValueTableRow": "460 MHz",
+                "gpuOfficialHandheldTableRow": "Official Handheld",
+                "gpuOfficialHandheldValueTableRow": "384 MHz",
+                "memHeader": "MEM Clocks",
+                "memMaxOfficialDockedTableRow": "Maximum, Official Docked",
+                "memMaxOfficialDockedValueTableRow": "1600 MHz",
+                "memOfficialHandheldTableRow": "Official Handheld",
+                "memOfficialHandheldValueTableRow": "1331 MHz"
+            },
+            "aboutTab": {
+                "name": "About",
+                "subtitleLabel": "Nintendo Switch overclocking / underclocking system module and frontend app by the RetroNX Team",
+                "copyrightLabel": "System module licensed under the Beerware license\nFrontend app licensed under GPL-3.0\n\u00A9 2019 - 2020 natinusala, p-sam, m4xw",
+                "LinksAndResourcesHeader": "Links and Resources",
+                "linksLabel": "\uE016  User guide and code source can be found on our GitHub repository\n\uE016  The sys-clk manager is powered by Borealis, an hardware accelerated UI library\n\uE016  Join the RetroNX Discord server for support, to request features or just hang out!"
+            }
+        },
+
+        "appprofileframe": {
+            "textTitle": "Edit application profile",
+            "sysclkIpcGetProfilesErrorResult": "sysclkIpcGetProfiles",
+            "sysclkIpcSetProfilesNotify": "\uE14B Profile saved",
+            "sysclkIpcSetProfilesErrorResult": "sysclkIpcSetProfiles",
+            "sysclkIpcSetProfilesErrorNotify": "An error occured while saving the profile - see logs for more details",
+            "cacheFreqForModuleAndProfileDebug": "Caching freq for module %d and profile %d to %",
+            "updateCancelActionHintOnProfileChanged": "Cancel",
+            "hasProfileChangedDialogOnCancel": "You have unsaved changes to this profile!\nAre you sure you want to discard them?",
+            "hasProfileChangedDialogButtonNoOnCancel": "No",
+            "hasProfileChangedDialogButtonYesOnCancel": "Yes"
+        }
+    }
+}

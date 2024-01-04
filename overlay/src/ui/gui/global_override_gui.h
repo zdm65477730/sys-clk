@@ -25,15 +25,12 @@ class GlobalOverrideGui : public BaseMenuGui
         std::uint32_t listHz[SysClkModule_EnumMax];
         std::uint32_t customListProfiles[SysClkConfigValue_EnumMax];
     
-       // void openFreqChoiceGui(SysClkModule module, std::uint32_t* hzList);
+        void openFreqChoiceGui(SysClkModule module, std::uint32_t* hzList);
         void openProfileChoiceGui(int configNumber, std::uint32_t* profileList);
-        //void addModuleListItem(SysClkModule module, std::uint32_t* hzList);
+        void addModuleListItem(SysClkModule module, std::uint32_t* hzList);
         void addCustomListItem(int configNumber,std::string shortLabel, std::uint32_t* profileList);
         void addCustomToggleListItem(int configNumber,std::string shortLabel);
     
-        void openFreqChoiceGui(SysClkModule module);
-        void addModuleListItem(SysClkModule module);
-
     public:
         GlobalOverrideGui();
         ~GlobalOverrideGui() {}

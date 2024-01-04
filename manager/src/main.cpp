@@ -22,8 +22,6 @@
 #include <stdlib.h>
 #include <string>
 
-#include <borealis.hpp>
-
 #include "main_frame.h"
 #include "logo.h"
 
@@ -32,10 +30,11 @@
 
 int main(int argc, char* argv[])
 {
+    brls::i18n::loadTranslations();
     // Init the app
     if (!brls::Application::init(APP_TITLE))
     {
-        brls::Logger::error("Unable to init Borealis application");
+        brls::Logger::error("application/manager/main/initError"_i18n);
         return EXIT_FAILURE;
     }
 
@@ -46,7 +45,7 @@ int main(int argc, char* argv[])
 
     if (brls::Application::loadFont(LOGO_FONT_NAME, LOGO_FONT_PATH) < 0)
     {
-        brls::Logger::error("failed to load logo font");
+        brls::Logger::error("application/manager/main/loadFontError"_i18n);
     }
 
     uint32_t apiVersion;
@@ -54,24 +53,18 @@ int main(int argc, char* argv[])
     // Check that sys-clk is running
     if (!sysclkIpcRunning())
     {
-        brls::Logger::error("sys-clk is not running");
-        brls::Application::crash("sys-clk does not seem to be running, please check that it is correctly installed and enabled.");
+        brls::Logger::error("application/manager/main/sysclkIpcNotRunningError"_i18n);
+        brls::Application::crash("application/manager/main/sysclkIpcNotRunningCrash"_i18n);
     }
     // Initialize sys-clk IPC client
     else if (R_FAILED(sysclkIpcInitialize()) || R_FAILED(sysclkIpcGetAPIVersion(&apiVersion)))
     {
-        brls::Logger::error("Unable to initialize sys-clk IPC client");
-        brls::Application::crash("Could not connect to sys-clk, please check that it is correctly installed and enabled.");
+        brls::Logger::error("application/manager/main/sysclkIpcInitError"_i18n);
+        brls::Application::crash("application/manager/main/sysclkIpcInitCrash"_i18n);
     }
-    else if (SYSCLK_IPC_API_VERSION != apiVersion)
-    {
-        brls::Logger::error("sys-clk IPC API version mismatch (expected: %u; actual: %u)", SYSCLK_IPC_API_VERSION, apiVersion);
-        brls::Application::crash("The manager is not compatible with the currently running sysmodule of sys-clk, please check that you have correctly installed the latest version (reboot?).");
-    }
-    else if (R_FAILED(cacheFreqList()))
-    {
-        brls::Logger::error("Failed to get the freq list from sys-clk");
-        brls::Application::crash("Failed to get the freq list from sys-clk, please check that you have correctly installed the latest version (reboot?).");
+    else if (SYSCLK_IPC_API_VERSION != apiVersion) {
+        brls::Logger::error("application/manager/main/sysclkIpcVersionMismatchError"_i18n, SYSCLK_IPC_API_VERSION, apiVersion);
+        brls::Application::crash("application/manager/main/sysclkIpcVersionMismatchCrash"_i18n);
     }
     else
     {
@@ -84,10 +77,9 @@ int main(int argc, char* argv[])
         }
         else
         {
-            brls::Logger::error("Unable to get sys-clk version string");
-            brls::Application::setCommonFooter("[unknown]");
+            brls::Logger::error("application/manager/main/sysclkIpcVersionGetError"_i18n);
+            brls::Application::setCommonFooter("application/manager/main/sysclkIpcVersionGetUnknown"_i18n);
         }
-
 
         // Initialize services with a PC shim
         nsInitialize();

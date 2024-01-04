@@ -18,11 +18,36 @@
 #include "errors.h"
 #include "file_utils.h"
 
+static inline const char* sysclkFormatConfigValue(SysClkConfigValue val, bool pretty)
+{
+    switch(val)
+    {
+        case SysClkConfigValue_PollingIntervalMs:
+            return pretty ? "Polling Interval (ms)" : "poll_interval_ms";
+        case SysClkConfigValue_TempLogIntervalMs:
+            return pretty ? "Temperature logging interval (ms)" : "temp_log_interval_ms";
+        case SysClkConfigValue_CsvWriteIntervalMs:
+            return pretty ? "CSV write interval (ms)" : "csv_write_interval_ms";
+        case SysClkConfigValue_UncappedGPUEnabled:
+            return pretty ? "Uncapped GPU (does not change profile)" : "uncapped_gpu_enabled";
+        case SysClkConfigValue_FakeProfileModeEnabled:
+            return pretty ? "Minimum profile (spoof profile)" : "fake_profile_mode_enabled";
+        case SysClkConfigValue_OverrideCPUBoostEnabled:
+            return pretty ? "Set CPU to 1785 MHz during boost" : "override_cpu_boost_enabled";
+        case SysClkConfigValue_OverrideGPUBoostEnabled:
+            return pretty ? "Set GPU to 76 MHz during boost" : "override_gpu_boost_enabled";
+        case SysClkConfigValue_OverrideMEMEnabled:
+            return pretty ? "Override MEM to 1600 MHz" : "override_mem_enabled";
+        default:
+            return NULL;
+    }
+}
+
 Config::Config(std::string path)
 {
     this->path = path;
     this->loaded = false;
-    this->profileMHzMap = std::map<std::tuple<std::uint64_t, SysClkProfile, SysClkModule>, std::uint32_t>();
+    this->profileMhzMap = std::map<std::tuple<std::uint64_t, SysClkProfile, SysClkModule>, std::uint32_t>();
     this->profileCountMap = std::map<std::uint64_t, std::uint8_t>();
     this->mtime = 0;
     this->enabled = false;
@@ -43,7 +68,7 @@ Config::~Config()
     this->Close();
 }
 
-Config* Config::CreateDefault()
+Config *Config::CreateDefault()
 {
     return new Config(FILE_CONFIG_DIR "/config.ini");
 }
@@ -69,7 +94,7 @@ void Config::Load()
 void Config::Close()
 {
     this->loaded = false;
-    this->profileMHzMap.clear();
+    this->profileMhzMap.clear();
     this->profileCountMap.clear();
 
     for(unsigned int i = 0; i < SysClkConfigValue_EnumMax; i++)
@@ -107,12 +132,12 @@ time_t Config::CheckModificationTime()
     return mtime;
 }
 
-std::uint32_t Config::FindClockMHz(std::uint64_t tid, SysClkModule module, SysClkProfile profile)
+std::uint32_t Config::FindClockMhz(std::uint64_t tid, SysClkModule module, SysClkProfile profile)
 {
     if (this->loaded)
     {
-        std::map<std::tuple<std::uint64_t, SysClkProfile, SysClkModule>, std::uint32_t>::const_iterator it = this->profileMHzMap.find(std::make_tuple(tid, profile, module));
-        if (it != this->profileMHzMap.end())
+        std::map<std::tuple<std::uint64_t, SysClkProfile, SysClkModule>, std::uint32_t>::const_iterator it = this->profileMhzMap.find(std::make_tuple(tid, profile, module));
+        if (it != this->profileMhzMap.end())
         {
             return it->second;
         }
@@ -129,7 +154,7 @@ std::uint32_t Config::FindClockHzFromProfiles(std::uint64_t tid, SysClkModule mo
     {
         for(auto profile: profiles)
         {
-            mhz = FindClockMHz(tid, module, profile);
+            mhz = FindClockMhz(tid, module, profile);
 
             if(mhz)
             {
@@ -170,7 +195,7 @@ void Config::GetProfiles(std::uint64_t tid, SysClkTitleProfileList* out_profiles
     {
         for(unsigned int module = 0; module < SysClkModule_EnumMax; module++)
         {
-            out_profiles->mhzMap[profile][module] = FindClockMHz(tid, (SysClkModule)module, (SysClkProfile)profile);
+            out_profiles->mhzMap[profile][module] = FindClockMhz(tid, (SysClkModule)module, (SysClkProfile)profile);
         }
     }
 }
@@ -207,7 +232,7 @@ bool Config::SetProfiles(std::uint64_t tid, SysClkTitleProfileList* profiles, bo
                 numProfiles++;
 
                 // Put key and value as string
-                snprintf(sk, 0x40, "%s_%s", Board::GetProfileName((SysClkProfile)profile, false), Board::GetModuleName((SysClkModule)module, false));
+                snprintf(sk, 0x40, "%s_%s", Clocks::GetProfileName((SysClkProfile)profile, false), Clocks::GetModuleName((SysClkModule)module, false));
                 snprintf(sv, 0x10, "%d", *mhz);
 
                 // Add them to the ini key/value str arrays
@@ -244,11 +269,11 @@ bool Config::SetProfiles(std::uint64_t tid, SysClkTitleProfileList* profiles, bo
             {
                 if(*mhz)
                 {
-                    this->profileMHzMap[std::make_tuple(tid, (SysClkProfile)profile, (SysClkModule)module)] = *mhz;
+                    this->profileMhzMap[std::make_tuple(tid, (SysClkProfile)profile, (SysClkModule)module)] = *mhz;
                 }
                 else
                 {
-                    this->profileMHzMap.erase(std::make_tuple(tid, (SysClkProfile)profile, (SysClkModule)module));
+                    this->profileMhzMap.erase(std::make_tuple(tid, (SysClkProfile)profile, (SysClkModule)module));
                 }
                 mhz++;
             }
@@ -269,7 +294,7 @@ std::uint8_t Config::GetProfileCount(std::uint64_t tid)
     return it->second;
 }
 
-int Config::BrowseIniFunc(const char* section, const char* key, const char* value, void* userdata)
+int Config::BrowseIniFunc(const char* section, const char* key, const char* value, void *userdata)
 {
     Config* config = (Config*)userdata;
     std::uint64_t input;
@@ -307,7 +332,7 @@ int Config::BrowseIniFunc(const char* section, const char* key, const char* valu
 
     for(unsigned int profile = 0; profile < SysClkProfile_EnumMax; profile++)
     {
-        const char* profileCode = Board::GetProfileName((SysClkProfile)profile, false);
+        const char* profileCode = Clocks::GetProfileName((SysClkProfile)profile, false);
         size_t profileCodeLen = strlen(profileCode);
 
         if(!strncmp(key, profileCode, profileCodeLen) && key[profileCodeLen] == '_')
@@ -316,7 +341,7 @@ int Config::BrowseIniFunc(const char* section, const char* key, const char* valu
 
             for(unsigned int module = 0; module < SysClkModule_EnumMax; module++)
             {
-                const char* moduleCode = Board::GetModuleName((SysClkModule)module, false);
+                const char* moduleCode = Clocks::GetModuleName((SysClkModule)module, false);
                 size_t moduleCodeLen = strlen(moduleCode);
                 if(!strncmp(subkey, moduleCode, moduleCodeLen) && subkey[moduleCodeLen] == '\0')
                 {
@@ -340,7 +365,7 @@ int Config::BrowseIniFunc(const char* section, const char* key, const char* valu
         return 1;
     }
 
-    config->profileMHzMap[std::make_tuple(tid, parsedProfile, parsedModule)] = mhz;
+    config->profileMhzMap[std::make_tuple(tid, parsedProfile, parsedModule)] = mhz;
     std::map<std::uint64_t, std::uint8_t>::iterator it = config->profileCountMap.find(tid);
     if (it == config->profileCountMap.end())
     {
@@ -366,36 +391,44 @@ bool Config::Enabled()
 
 void Config::SetOverrideHz(SysClkModule module, std::uint32_t hz)
 {
-    ASSERT_ENUM_VALID(SysClkModule, module);
-
     std::scoped_lock lock{this->overrideMutex};
-
+    if(!SYSCLK_ENUM_VALID(SysClkModule, module))
+    {
+        ERROR_THROW("Unhandled SysClkModule: %u", module);
+    }
     this->overrideFreqs[module] = hz;
 }
 
 std::uint32_t Config::GetOverrideHz(SysClkModule module)
 {
-    ASSERT_ENUM_VALID(SysClkModule, module);
-
     std::scoped_lock lock{this->overrideMutex};
+    if(!SYSCLK_ENUM_VALID(SysClkModule, module))
+    {
+        ERROR_THROW("Unhandled SysClkModule: %u", module);
+    }
 
     return this->overrideFreqs[module];
 }
 
 std::uint64_t Config::GetConfigValue(SysClkConfigValue kval)
 {
-    ASSERT_ENUM_VALID(SysClkConfigValue, kval);
-
     std::scoped_lock lock{this->configMutex};
+    if(!SYSCLK_ENUM_VALID(SysClkConfigValue, kval))
+    {
+        ERROR_THROW("Unhandled SysClkConfigValue: %u", kval);
+    }
 
     return this->configValues[kval];
 }
 
 const char* Config::GetConfigValueName(SysClkConfigValue kval, bool pretty)
 {
-    ASSERT_ENUM_VALID(SysClkConfigValue, kval);
-
     const char* result = sysclkFormatConfigValue(kval, pretty);
+
+    if(!result)
+    {
+        ERROR_THROW("No such SysClkConfigValue: %u", kval);
+    }
 
     return result;
 }

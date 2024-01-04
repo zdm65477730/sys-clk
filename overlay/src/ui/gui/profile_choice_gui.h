@@ -16,8 +16,6 @@
 
 using ProfileChoiceListener = std::function<bool(std::uint32_t profile)>;
 
-#define FREQ_DEFAULT_TEXT "Do not override"
-
 class ProfileChoiceGui : public BaseMenuGui
 {
     protected:

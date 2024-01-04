@@ -1,0 +1,174 @@
+{
+    "manager": {
+        "utils": {
+            "doNotOverride": "不超頻",
+            "errorResultSwitch": "[0x%x] %s 失敗 - %04d-%04d",
+            "errorResultNoneSwitch": "[0x%x] %s 失敗 - xxxx-xxxx",
+            "sysclkFormatConfigValuePollingIntervalPretty": "輪詢間隔（毫秒）",
+            "sysclkFormatConfigValuePollingInterval": "poll_interval_ms",
+            "sysclkFormatConfigValueTemperatureLoggingIntervalPretty": "溫度記錄間隔（毫秒）",
+            "sysclkFormatConfigValueTemperatureLoggingInterval": "temp_log_interval_ms",
+            "sysclkFormatConfigValueCSVWriteIntervalPretty": "CSV寫入間隔（毫秒）",
+            "sysclkFormatConfigValueCSVWriteInterval": "csv_write_interval_ms",
+            "sysclkFormatConfigValueGPUNoLimitedPretty": "GPU無限製（無需更改配置文件）",
+            "sysclkFormatConfigValueGPUNoLimited": "uncapped_gpu_enabled",
+            "sysclkFormatConfigValueLowestFakeConfigPretty": "最低配置文件（偽配置文件）",
+            "sysclkFormatConfigValueLowestFakeConfig": "fake_profile_mode_enabled",
+            "sysclkFormatConfigValueOverrideCPUBoostPretty": "在加速期間將CPU超頻到1785MHz",
+            "sysclkFormatConfigValueOverrideCPUBoost": "override_cpu_boost_enabled",
+            "sysclkFormatConfigValueOverrideGPUBoostPretty": "在加速期間將GPU超頻到76MHz",
+            "sysclkFormatConfigValueOverrideGPUBoost": "override_gpu_boost_enabled",
+            "sysclkFormatConfigValueOverrideMEMPretty": "將內存超頻到1600MHz",
+            "sysclkFormatConfigValueOverrideMEM": "override_mem_enabled",
+            "formatProfileDockedPretty": "底座模式",
+            "formatProfileDocked": "底座",
+            "formatProfileHandheldPretty": "手持模式",
+            "formatProfileHandheld": "手持",
+            "formatProfileHandheldChargingPretty": "手持充電模式",
+            "formatProfileHandheldCharging": "手持充電",
+            "formatProfileHandheldChargingUSBPretty": "手持USB充電模式",
+            "formatProfileHandheldChargingUSB": "手持USB充電",
+            "formatProfileHandheldChargingOfficialPretty": "手持官方充電模式",
+            "formatProfileHandheldChargingOfficial": "手持官方充電",
+            "createFreqListItem": {
+                "moduleCPU": "CPU頻率",
+                "moduleGPU": "GPU頻率",
+                "moduleMEM": "內存頻率"
+            }
+        },
+
+        "logo": {
+            "nameLabelStyle": "sys-clk",
+            "headerDescribeLabelStyle": "管理器"
+        },
+
+        "main": {
+            "initError": "無法初始化Borealis應用程序",
+            "loadFontError": "加載字體失敗",
+            "sysclkIpcNotRunningError": "sys-clk未運行",
+            "sysclkIpcNotRunningCrash": "sys-clk似乎沒有運行，請檢查它是否已正確安裝和啟用。",
+            "sysclkIpcInitError": "無法初始化sys-clk IPC客戶端",
+            "sysclkIpcInitCrash": "無法連接到sys-clk，請檢查它是否已正確安裝和啟用。",
+            "sysclkIpcVersionMismatchError": "sys-clk IPC API版本不匹配（預期：%u，實際：%u)",
+            "sysclkIpcVersionMismatchCrash": "與當前運行的sys-clk系統模塊不兼容，請檢查是否已正確安裝最新版本並且重啟過。",
+            "sysclkIpcVersionGetError": "無法獲取sys-clk版本字符串",
+            "sysclkIpcVersionGetUnknown": "[未知]"
+        },
+
+        "refreshtask": {
+            "sysclkIpcGetCurrentContextOnStartError": "無法獲取上下文",
+            "sysclkIpcGetCurrentContextOnStartErrorResult": "sysclkIpcGetCurrentContext",
+            "sysclkIpcGetCurrentContextRunError": "無法刷新上下文"
+        },
+
+        "mainframe": {
+            "statusTab": {
+                "name": "狀態",
+                "sysclkIpcGetCurrentContextError": "無法獲取上下文",
+                "sysclkIpcGetCurrentContextErrorResult": "sysclkIpcGetCurrentContext",
+                "sysclkIpcGetCurrentContextCrash": "無法獲取當前的sys-clk上下文，請檢查它是否已正確安裝和啟用。",
+                "serviceEnabledListItem": "啟用服務",
+                "serviceEnabledListItemText": "是",
+                "serviceDisenabledListItemText": "否",
+                "newServiceStateInfo": "新服務狀態 = %d",
+                "sysclkIpcSetEnabledError": "無法設置啟用狀態",
+                "sysclkIpcSetEnabledErrorResult": "sysclkIpcSetEnabled",
+                "hardwareHeader": "硬件",
+                "cpuStatusCell": "CPU",
+                "gpuStatusCell": "GPU",
+                "memStatusCell": "內存",
+                "skinStatusCell": "表面",
+                "socStatusCell": "芯片",
+                "pcbStatusCell": "主板",
+                "systemHeader": "系統",
+                "profileStatusCell": "配置",
+                "tidStatusCell": "程序ID",
+                "updateWarningForProfileHandheldLabel": "\uE140  最大GPU頻率為",
+                "updateWarningResultForProfileHandheldLabel": "，因為您處於手持模式。",
+                "updateWarningForProfileHandheldChargingUSBLabel": "\uE140  最大GPU頻率為",
+                "updateWarningResultForProfileHandheldChargingUSBLabel": "，因為您使用的是非官方充電器類型。"
+            },
+            "applicationProfilesTab": {
+                "name": "應用程序配置",
+                "filterToggleListItem": "顯示沒有配置文件的應用程序",
+                "filterEnabledToggleListItemText": "是",
+                "filterDisenabledToggleListItemText": "否",
+                "globalDefaultProfileListItem": "全局默認配置",
+                "globalDefaultProfileDescriptionListItemText": "應用全局默認配置沒有指定的配置，如果應用程序根本沒有配置，也可以作為永久全局超頻配置。",
+                "nsListApplicationRecordErrorRsult": "nsListApplicationRecord",
+                "nsGetApplicationControlDataErrorRsult": "nsGetApplicationControlData",
+                "nacpGetLanguageEntryErrorRsult": "nacpGetLanguageEntry",
+                "sysclkIpcGetProfileCountErrorRsult": "sysclkIpcGetProfileCount",
+                "itemEmptyUpdateEmptyListLabelText": "\uE140  您沒有在Nintendo Switch上安裝任何應用程序。",
+                "profileItemsEmptyUpdateEmptyListLabelText": "\uE140  您目前沒有任何具有已定義配置文件的應用程序。",
+                "sysclkIpcGetProfileCountErrorResult": "sysclkIpcGetProfileCount"
+            },
+            "advancedSettingsTab": {
+                "name": "高級設置",
+                "sysclkIpcGetCurrentContextError": "無法獲取上下文",
+                "sysclkIpcGetCurrentContextErrorResult": "sysclkIpcGetCurrentContext",
+                "sysclkIpcGetCurrentContextCrash": "法獲取當前的sys-clk上下文，請檢查它是否已正確安裝和啟用。",
+                "disclaimerLabel": "\uE140  請僅在您知道自己在做什麽時才更改這些設置。",
+                "temporaryOverridesHeader": "臨時超頻",
+                "unableUpdateCPUOverrideError": "無法更新CPU超頻",
+                "unableUpdateGPUOverrideError": "無法更新GPU超頻",
+                "unableUpdateMEMOverrideError": "無法更新內存超頻",
+                "sysclkIpcRemoveOverrideErrorResult": "sysclkIpcRemoveOverride",
+                "sysclkIpcSetOverrideErrorResult": "sysclkIpcSetOverride",
+                "configurationHeader": "配置",
+                "invalidNegativeValueConfigSaveFailedNotify": "\uE5CD 無法保存配置：無效值（負數）",
+                "invalidValueConfigSaveFailedNotify": "\uE5CD 無法保存配置：無效值",
+                "configSavedNotify": "\uE14B 配置已保存",
+                "unableParseConfigValueError": "無法解析配置值%s：%s",
+                "configItem2EnabledToggleListItemText": "是",
+                "configItem2DisabledToggleListItemText": "否",
+                "notesLable": "選擇的最低配置將確保您的設備至少保持在該最低水平。它適合對充電配置有高時鐘並且有時想在沒有充電器的情況下激活這些配置的人（例如，選擇「官方充電模式」將確保您的設備配置至少保持在「官方充電模式」，即使您的設備實際處於「手持模式」）。如果實際配置高於最低配置 , 所選的最低配置不會降低您的實際配置（例如，選擇「充電模式」在插入底座時不會執行任何操作（因為您已經處於更高配置））",
+                "csvUpdateIntervalDescription": "更新/config/sys-clk/context.csv的頻率（以毫秒為單位）\n\uE016  設置0禁用",
+                "temperatureLogIntervalDescription": "記錄溫度的頻率（以毫秒為單位）\n\uE016  設置0禁用",
+                "pollingIntervalDescription": "檢查和應用配置文件的速度（以毫秒為單位）"
+            },
+            "cheatSheetTab": {
+                "name": "備忘錄",
+                "cpuHeader": "CPU時鐘",
+                "cpuMaxTableRow": "最大值",
+                "cpuMaxValueTableRow": "1785 MHz",
+                "cpuOfficialDockedAndHandheldTableRow": "官方底座和手持模式",
+                "cpuOfficialDockedAndHandheldValueTableRow": "1020 MHz",
+                "gpuHeader": "GPU時鐘",
+                "gpuMaxTableRow": "最大值",
+                "gpuMaxValueTableRow": "921 MHz",
+                "gpuOfficialDockedTableRow": "官方底座模式",
+                "gpuOfficialDockedValueTableRow": "768 MHz",
+                "gpuMaximumHandheldTableRow": "手持模式（最高）",
+                "gpuMaximumHandheldValueTableRow": "460 MHz",
+                "gpuOfficialHandheldTableRow": "官方手持模式",
+                "gpuOfficialHandheldValueTableRow": "384 MHz",
+                "memHeader": "內存時鐘",
+                "memMaxOfficialDockedTableRow": "官方底座模式（最高）",
+                "memMaxOfficialDockedValueTableRow": "1600 MHz",
+                "memOfficialHandheldTableRow": "官方手持模式",
+                "memOfficialHandheldValueTableRow": "1331 MHz"
+            },
+            "aboutTab": {
+                "name": "關於",
+                "subtitleLabel": "RetroNX團隊的任天堂Switch超頻與降頻系統模塊以及前端應用程序",
+                "copyrightLabel": "系統模塊根據Beerware許可獲得許可\n根據GPL-3.0獲得許可的前端應用程序\n\u00A9 2019 - 2020 natinusala, p-sam, m4xw",
+                "LinksAndResourcesHeader": "鏈接和資源",
+                "linksLabel": "\uE016  用戶指南和源代碼可以在我們的GitHub庫中找到\n\uE016  sys-clk管理器由硬件加速UI庫Borealis提供支持\n\uE016  加入RetroNX Discord服務器以獲得支持， 請求功能或只是閑逛！"
+            }
+        },
+
+        "appprofileframe": {
+            "textTitle": "編輯應用程序配置",
+            "sysclkIpcGetProfilesErrorResult": "sysclkIpcGetProfiles",
+            "sysclkIpcSetProfilesNotify": "\uE14B 配置已保存",
+            "sysclkIpcSetProfilesErrorResult": "sysclkIpcSetProfiles",
+            "sysclkIpcSetProfilesErrorNotify": "保存配置時發生錯誤 - 有關更多詳細信息，請參閱日誌",
+            "cacheFreqForModuleAndProfileDebug": "將模塊 %d 和配置文件 %d 的緩存頻率緩存到 %",
+            "updateCancelActionHintOnProfileChanged": "取消",
+            "hasProfileChangedDialogOnCancel": "此配置您有未保存的更改！\n您確定要放棄它們嗎？",
+            "hasProfileChangedDialogButtonNoOnCancel": "否",
+            "hasProfileChangedDialogButtonYesOnCancel": "是"
+        }
+    }
+}

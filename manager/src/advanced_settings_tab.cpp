@@ -1,4 +1,4 @@
- /*
+/*
     sys-clk manager, a sys-clk frontend homebrew
     Copyright (C) 2019  natinusala
     Copyright (C) 2019  p-sam
@@ -22,7 +22,7 @@
 
 #include "utils.h"
 
-#include <sysclk.h>
+#include <sysclk/clocks.h>
 
 AdvancedSettingsTab::AdvancedSettingsTab()
 {
@@ -32,31 +32,31 @@ AdvancedSettingsTab::AdvancedSettingsTab()
 
     if (R_FAILED(rc))
     {
-        brls::Logger::error("Unable to get context");
-        errorResult("sysclkIpcGetCurrentContext", rc);
-        brls::Application::crash("Could not get the current sys-clk context, please check that it is correctly installed and enabled.");
+        brls::Logger::error("application/manager/mainframe/advancedSettingsTab/sysclkIpcGetCurrentContextError"_i18n);
+        errorResult("application/manager/mainframe/advancedSettingsTab/sysclkIpcGetCurrentContextErrorResult"_i18n, rc);
+        brls::Application::crash("application/manager/mainframe/advancedSettingsTab/sysclkIpcGetCurrentContextCrash"_i18n);
         return;
     }
 
     // Create UI
 
     // Disclaimer
-    this->addView(new brls::Label(brls::LabelStyle::REGULAR, "\uE140  Please only alter these settings if you know what you are doing.", true));
+    this->addView(new brls::Label(brls::LabelStyle::REGULAR, "application/manager/mainframe/advancedSettingsTab/disclaimerLabel"_i18n, true));
 
     // Temporary overrides
-    this->addView(new brls::Header("Temporary overrides"));
+    this->addView(new brls::Header("application/manager/mainframe/advancedSettingsTab/temporaryOverridesHeader"_i18n));
 
     // CPU
     brls::SelectListItem *cpuFreqListItem = createFreqListItem(SysClkModule_CPU, context.overrideFreqs[SysClkModule_CPU] / 1000000);
     cpuFreqListItem->getValueSelectedEvent()->subscribe([](int result){
         Result rc = result == 0 ?
             sysclkIpcRemoveOverride(SysClkModule_CPU) :
-            sysclkIpcSetOverride(SysClkModule_CPU, g_freq_table_hz[SysClkModule_CPU][result]);
+            sysclkIpcSetOverride(SysClkModule_CPU, sysclk_g_freq_table_cpu_hz[result - 1]);
 
         if (R_FAILED(rc))
         {
-            brls::Logger::error("Unable to update CPU Override");
-            errorResult(result == 0 ? "sysclkIpcRemoveOverride" : "sysclkIpcSetOverride",  rc);
+            brls::Logger::error("application/manager/mainframe/advancedSettingsTab/unableUpdateCPUOverrideError"_i18n);
+            errorResult(result == 0 ? "application/manager/mainframe/advancedSettingsTab/sysclkIpcRemoveOverrideErrorResult"_i18n : "application/manager/mainframe/advancedSettingsTab/sysclkIpcSetOverrideErrorResult"_i18n,  rc);
             // TODO: Reset selected value
         }
     });
@@ -66,12 +66,12 @@ AdvancedSettingsTab::AdvancedSettingsTab()
     gpuFreqListItem->getValueSelectedEvent()->subscribe([](int result){
         Result rc = result == 0 ?
             sysclkIpcRemoveOverride(SysClkModule_GPU) :
-            sysclkIpcSetOverride(SysClkModule_GPU, g_freq_table_hz[SysClkModule_GPU][result]);
+            sysclkIpcSetOverride(SysClkModule_GPU, sysclk_g_freq_table_gpu_hz[result - 1]);
 
         if (R_FAILED(rc))
         {
-            brls::Logger::error("Unable to update GPU Override");
-            errorResult(result == 0 ? "sysclkIpcRemoveOverride" : "sysclkIpcSetOverride",  rc);
+            brls::Logger::error("application/manager/mainframe/advancedSettingsTab/unableUpdateGPUOverrideError"_i18n);
+            errorResult(result == 0 ? "application/manager/mainframe/advancedSettingsTab/sysclkIpcRemoveOverrideErrorResult"_i18n : "application/manager/mainframe/advancedSettingsTab/sysclkIpcSetOverrideErrorResult"_i18n,  rc);
             // TODO: Reset selected value
         }
     });
@@ -82,12 +82,12 @@ AdvancedSettingsTab::AdvancedSettingsTab()
     {
         Result rc = result == 0 ?
             sysclkIpcRemoveOverride(SysClkModule_MEM) :
-            sysclkIpcSetOverride(SysClkModule_MEM, g_freq_table_hz[SysClkModule_MEM][result]);
+            sysclkIpcSetOverride(SysClkModule_MEM, sysclk_g_freq_table_mem_hz[result - 1]);
 
         if (R_FAILED(rc))
         {
-            brls::Logger::error("Unable to update MEM Override");
-            errorResult(result == 0 ? "sysclkIpcRemoveOverride" : "sysclkIpcSetOverride",  rc);
+            brls::Logger::error("application/manager/mainframe/advancedSettingsTab/unableUpdateMEMOverrideError"_i18n);
+            errorResult(result == 0 ? "application/manager/mainframe/advancedSettingsTab/sysclkIpcRemoveOverrideErrorResult"_i18n : "application/manager/mainframe/advancedSettingsTab/sysclkIpcSetOverrideErrorResult"_i18n,  rc);
             // TODO: Reset selected value
         }
     });
@@ -97,7 +97,7 @@ AdvancedSettingsTab::AdvancedSettingsTab()
     this->addView(memFreqListItem);
 
     // Config
-    this->addView(new brls::Header("Configuration"));
+    this->addView(new brls::Header("application/manager/mainframe/advancedSettingsTab/configurationHeader"_i18n));
 
     // Logging
     // TODO: add a logger view and put the button to enter it here
@@ -107,13 +107,13 @@ AdvancedSettingsTab::AdvancedSettingsTab()
 
     sysclkIpcGetConfigValues(&this->configValues);
 
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < SysClkConfigValue_UncappedGPUEnabled; i++)
     {
         SysClkConfigValue config = (SysClkConfigValue) i;
 
-        std::string label       = std::string(sysclkFormatConfigValue(config, true));
+        std::string label       = SysClkConfigValueToString(config, true);
         std::string description = this->getDescriptionForConfig(config);
-        uint64_t defaultValue   = this->configValues.values[config];
+        uint64_t defaultValue   = configValues.values[config];
 
         brls::IntegerInputListItem* configItem = new brls::IntegerInputListItem(label, defaultValue, label, description);
 
@@ -128,7 +128,7 @@ AdvancedSettingsTab::AdvancedSettingsTab()
                 // Validate the value
                 if (value < 0)
                 {
-                    brls::Application::notify("\uE5CD Couldn't save configuration: invalid value (is negative)");
+                    brls::Application::notify("application/manager/mainframe/advancedSettingsTab/invalidNegativeValueConfigSaveFailedNotify"_i18n);
                     configItem->setValue(std::to_string(this->configValues.values[config]));
                     return;
                 }
@@ -137,7 +137,7 @@ AdvancedSettingsTab::AdvancedSettingsTab()
 
                 if (!sysclkValidConfigValue(config, uvalue))
                 {
-                    brls::Application::notify("\uE5CD Couldn't save configuration: invalid value");
+                    brls::Application::notify("application/manager/mainframe/advancedSettingsTab/invalidValueConfigSaveFailedNotify"_i18n);
                     configItem->setValue(std::to_string(this->configValues.values[config]));
                     return;
                 }
@@ -146,28 +146,27 @@ AdvancedSettingsTab::AdvancedSettingsTab()
                 this->configValues.values[config] = uvalue;
                 sysclkIpcSetConfigValues(&this->configValues);
 
-                brls::Application::notify("\uE14B Configuration saved");
+                brls::Application::notify("application/manager/mainframe/advancedSettingsTab/configSavedNotify"_i18n);
             }
             catch(const std::exception& e)
             {
-                brls::Logger::error("Unable to parse config value %s: %s", configItem->getValue().c_str(), e.what());
+                brls::Logger::error("application/manager/mainframe/advancedSettingsTab/unableParseConfigValueError"_i18n, configItem->getValue().c_str(), e.what());
             }
         });
 
         this->addView(configItem);
     }
     
-    //loop for the added 3 custom configs
-    for (int i = 5; i < SysClkConfigValue_EnumMax; i++)
+    //loop for the added 5 custom configs
+    for (int i = SysClkConfigValue_UncappedGPUEnabled; i < SysClkConfigValue_EnumMax; i++)
     {
         SysClkConfigValue config = (SysClkConfigValue) i;
 
-        std::string label       = std::string(sysclkFormatConfigValue(config, true));
+        std::string label       = SysClkConfigValueToString(config, true);
         
-        //uint64_t defaultValue   = configValues.values[config];
-        uint64_t defaultValue   = this->configValues.values[config];
+        uint64_t defaultValue   = configValues.values[config];
         
-        if (i==(SysClkConfigValue_EnumMax-1)) {
+        if (i==SysClkConfigValue_FakeProfileModeEnabled) {
 
             // Fake profile
             brls::SelectListItem *profileListItem = createProfileListItem(label, (uint32_t) defaultValue);
@@ -176,12 +175,13 @@ AdvancedSettingsTab::AdvancedSettingsTab()
 
                 try
                 {
+                    
                     uint64_t uvalue = (uint64_t) sysclk_g_profile_table[result - 1];
                     
                     if (!sysclkValidConfigValue(config, uvalue))
                     {
-                        brls::Application::notify("\uE5CD Couldn't save configuration: invalid value");
-                        profileListItem->setValue(sysclkFormatProfile((SysClkProfile)this->configValues.values[config],true) );
+                        brls::Application::notify("application/manager/mainframe/advancedSettingsTab/invalidValueConfigSaveFailedNotify"_i18n);
+                        profileListItem->setValue(formatProfile((SysClkProfile)this->configValues.values[config]) );
                         return;
                     }
 
@@ -189,11 +189,11 @@ AdvancedSettingsTab::AdvancedSettingsTab()
                     this->configValues.values[config] = uvalue;
                     sysclkIpcSetConfigValues(&this->configValues);
 
-                    brls::Application::notify("\uE14B Configuration saved");
+                    brls::Application::notify("application/manager/mainframe/advancedSettingsTab/configSavedNotify"_i18n);
                 }
                 catch(const std::exception& e)
                 {
-                    brls::Logger::error("Unable to parse config value %s: %s", profileListItem->getValue().c_str(), e.what());
+                    brls::Logger::error("application/manager/mainframe/advancedSettingsTab/unableParseConfigValueError"_i18n, profileListItem->getValue().c_str(), e.what());
                 }
                 
                 
@@ -209,7 +209,7 @@ AdvancedSettingsTab::AdvancedSettingsTab()
                 defValue = true;
             }
         
-            brls::ToggleListItem* configItem2 = new brls::ToggleListItem(label, defValue, "", "Yes", "No");
+            brls::ToggleListItem* configItem2 = new brls::ToggleListItem(label, defValue, "", "application/manager/mainframe/advancedSettingsTab/configItem2EnabledToggleListItemText"_i18n, "application/manager/mainframe/advancedSettingsTab/configItem2DisabledToggleListItemText"_i18n);
             
             configItem2->getClickEvent()->subscribe([this, configItem2, config](View* view)
             {
@@ -218,7 +218,7 @@ AdvancedSettingsTab::AdvancedSettingsTab()
                     int value = 0;
                     std::string valuestring = configItem2->getValue();
                     
-                    if(valuestring == "Yes") {
+                    if(valuestring == "application/manager/mainframe/advancedSettingsTab/configItem2EnabledToggleListItemText"_i18n) {
                         value = 1;
                     }
                     
@@ -226,7 +226,7 @@ AdvancedSettingsTab::AdvancedSettingsTab()
 
                     if (!sysclkValidConfigValue(config, uvalue))
                     {
-                        brls::Application::notify("\uE5CD Couldn't save configuration: invalid value");
+                        brls::Application::notify("application/manager/mainframe/advancedSettingsTab/invalidValueConfigSaveFailedNotify"_i18n);
                         configItem2->setValue(std::to_string(this->configValues.values[config]));
                         return;
                     }
@@ -235,11 +235,11 @@ AdvancedSettingsTab::AdvancedSettingsTab()
                     this->configValues.values[config] = uvalue;
                     sysclkIpcSetConfigValues(&this->configValues);
 
-                    brls::Application::notify("\uE14B Configuration saved");
+                    brls::Application::notify("application/manager/mainframe/advancedSettingsTab/configSavedNotify"_i18n);
                 }
                 catch(const std::exception& e)
                 {
-                    brls::Logger::error("Unable to parse config value %s: %s", configItem2->getValue().c_str(), e.what());
+                    brls::Logger::error("application/manager/mainframe/advancedSettingsTab/unableParseConfigValueError"_i18n, configItem2->getValue().c_str(), e.what());
                 }
             });
 
@@ -252,7 +252,7 @@ AdvancedSettingsTab::AdvancedSettingsTab()
     // Notes
     brls::Label *notes = new brls::Label(
         brls::LabelStyle::DESCRIPTION,
-        "Chosen minimum profile will ensure that your device will stay at least at that minimum level. It's meant for people who have higher clocks in charging profiles and sometimes want to activate those profiles without a charger (e.g. choosing 'Official Charger' will ensure that your device's profile will remain at least at 'Official Charger' even if in reality your device is in handheld). Chosen minimum profile won't downgrade your real profile if the real profile is higher than the minimum profile (e.g. when docked choosing 'Charging' doesn't do anything (you are already at a higher profile)).",
+        "application/manager/mainframe/advancedSettingsTab/notesLable"_i18n,
         true
     );
     this->addView(notes);
@@ -264,15 +264,11 @@ std::string AdvancedSettingsTab::getDescriptionForConfig(SysClkConfigValue confi
     switch (config)
     {
         case SysClkConfigValue_CsvWriteIntervalMs:
-            return "How often to update /config/sys-clk/context.csv (in milliseconds)\n\uE016  Use 0 to disable";
+            return "application/manager/mainframe/advancedSettingsTab/csvUpdateIntervalDescription"_i18n;
         case SysClkConfigValue_TempLogIntervalMs:
-            return "How often to log temperatures (in milliseconds)\n\uE016  Use 0 to disable";
-        case SysClkConfigValue_FreqLogIntervalMs:
-            return "How often to log real frequencies (in milliseconds)\n\uE016  Use 0 to disable";
-        case SysClkConfigValue_PowerLogIntervalMs:
-            return "How often to log power consumption (in milliseconds)\n\uE016  Use 0 to disable";
+            return "application/manager/mainframe/advancedSettingsTab/temperatureLogIntervalDescription"_i18n;
         case SysClkConfigValue_PollingIntervalMs:
-            return "How fast to check and apply profiles (in milliseconds)";
+            return "application/manager/mainframe/advancedSettingsTab/pollingIntervalDescription"_i18n;
         default:
             return "";
     }

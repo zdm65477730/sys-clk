@@ -21,8 +21,7 @@ ProfileChoiceGui::ProfileChoiceGui(std::uint32_t selectedProfile, std::uint32_t*
 
 tsl::elm::ListItem* ProfileChoiceGui::createProfileListItem(std::uint32_t profile, bool selected)
 {
-    
-    tsl::elm::ListItem* listItem = new tsl::elm::ListItem(formatListProfile(profile));
+	tsl::elm::ListItem* listItem = new tsl::elm::ListItem(profile ? formatListProfile(profile) : "DefaultFreqFarmatListText"_tr);
     listItem->setValue(selected ? "\uE14B" : "");
 
     listItem->setClickListener([this, profile](u64 keys) {

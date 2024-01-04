@@ -20,37 +20,36 @@
 
 #include "cheat_sheet_tab.h"
 
-#include <borealis.hpp>
+using namespace brls::i18n::literals;
 
 CheatSheetTab::CheatSheetTab()
 {
     // CPU
-    this->addView(new brls::Header("CPU Clocks"));
+    this->addView(new brls::Header("application/manager/mainframe/cheatSheetTab/cpuHeader"_i18n));
     brls::Table *cpuTable = new brls::Table();
 
-    cpuTable->addRow(brls::TableRowType::BODY, "Maximum", "1785 MHz");
-    cpuTable->addRow(brls::TableRowType::BODY, "Official Docked and Handheld", "1020 MHz");
+    cpuTable->addRow(brls::TableRowType::BODY, "application/manager/mainframe/cheatSheetTab/cpuMaxTableRow"_i18n, "application/manager/mainframe/cheatSheetTab/cpuMaxValueTableRow"_i18n);
+    cpuTable->addRow(brls::TableRowType::BODY, "application/manager/mainframe/cheatSheetTab/cpuOfficialDockedAndHandheldTableRow"_i18n, "application/manager/mainframe/cheatSheetTab/cpuOfficialDockedAndHandheldValueTableRow"_i18n);
 
     this->addView(cpuTable);
 
     // GPU
-    this->addView(new brls::Header("GPU Clocks"));
+    this->addView(new brls::Header("application/manager/mainframe/cheatSheetTab/gpuHeader"_i18n));
     brls::Table *gpuTable = new brls::Table();
 
-    gpuTable->addRow(brls::TableRowType::BODY, "Maximum", "921 MHz");
-    gpuTable->addRow(brls::TableRowType::BODY, "Official Docked", "768 MHz");
-    gpuTable->addRow(brls::TableRowType::BODY, "Maximum Mariko Handheld", "614 MHz");
-    gpuTable->addRow(brls::TableRowType::BODY, "Maximum Erista Handheld", "460 MHz");
-    gpuTable->addRow(brls::TableRowType::BODY, "Official Handheld", "384 MHz");
+    gpuTable->addRow(brls::TableRowType::BODY, "application/manager/mainframe/cheatSheetTab/gpuMaxTableRow"_i18n, "application/manager/mainframe/cheatSheetTab/gpuMaxValueTableRow"_i18n);
+    gpuTable->addRow(brls::TableRowType::BODY, "application/manager/mainframe/cheatSheetTab/gpuOfficialDockedTableRow"_i18n, "application/manager/mainframe/cheatSheetTab/gpuOfficialDockedValueTableRow"_i18n);
+    gpuTable->addRow(brls::TableRowType::BODY, "application/manager/mainframe/cheatSheetTab/gpuMaximumHandheldTableRow"_i18n, "application/manager/mainframe/cheatSheetTab/gpuMaximumHandheldValueTableRow"_i18n);
+    gpuTable->addRow(brls::TableRowType::BODY, "application/manager/mainframe/cheatSheetTab/gpuOfficialHandheldTableRow"_i18n, "application/manager/mainframe/cheatSheetTab/gpuOfficialHandheldValueTableRow"_i18n);
 
     this->addView(gpuTable);
 
     // MEM
-    this->addView(new brls::Header("MEM Clocks"));
+    this->addView(new brls::Header("application/manager/mainframe/cheatSheetTab/memHeader"_i18n));
     brls::Table *memTable = new brls::Table();
 
-    memTable->addRow(brls::TableRowType::BODY, "Maximum, Official Docked", "1600 MHz");
-    memTable->addRow(brls::TableRowType::BODY, "Official Handheld", "1331 MHz");
+    memTable->addRow(brls::TableRowType::BODY, "application/manager/mainframe/cheatSheetTab/memMaxOfficialDockedTableRow"_i18n, "application/manager/mainframe/cheatSheetTab/memMaxOfficialDockedValueTableRow"_i18n);
+    memTable->addRow(brls::TableRowType::BODY, "application/manager/mainframe/cheatSheetTab/memOfficialHandheldTableRow"_i18n, "application/manager/mainframe/cheatSheetTab/memOfficialHandheldValueTableRow"_i18n);
 
     this->addView(memTable);
 }

@@ -17,7 +17,8 @@ include $(DEVKITPRO)/libnx/switch_rules
 # INCLUDES is a list of directories containing header files
 # EXEFS_SRC is the optional input directory containing data copied into exefs, if anything this normally should only contain "main.npdm".
 #---------------------------------------------------------------------------------
-TARGET		:=	sys-clk
+APP_TITLE   ?=  sys-clk
+TARGET		:=	$(APP_TITLE)
 BUILD		:=	build
 OUTDIR		:=	out
 RESOURCES	:=	res
@@ -30,7 +31,7 @@ LIBNAMES	:=	minIni nxExt
 #---------------------------------------------------------------------------------
 # version control constants
 #---------------------------------------------------------------------------------
-TARGET_VERSION	:= $(shell git describe --tags)
+TARGET_VERSION	:= $(shell git describe --dirty --always --tags)
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -49,7 +50,7 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -std=gnu++17
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= $(foreach lib,$(LIBNAMES),-l$(lib)) -lnx
+LIBS	:= -lnx $(foreach lib,$(LIBNAMES),-l$(lib))
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing

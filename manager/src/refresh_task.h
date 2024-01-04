@@ -37,7 +37,6 @@ class RefreshTask : public brls::RepeatingTask
         SysClkContext oldContext;
 
         FreqUpdateEvent freqUpdateEvent;
-        FreqUpdateEvent realFreqUpdateEvent;
         AppIdUpdateEvent appIdUpdateEvent;
         ProfileUpdateEvent profileUpdateEvent;
         TempUpdateEvent tempUpdateEvent;
@@ -56,13 +55,6 @@ class RefreshTask : public brls::RepeatingTask
         }
         inline void unregisterFreqListener(FreqUpdateEvent::Subscription subscription) {
             this->freqUpdateEvent.unsubscribe(subscription);
-        }
-
-        inline FreqUpdateEvent::Subscription registerRealFreqListener(FreqUpdateEvent::Callback cb) {
-            return this->realFreqUpdateEvent.subscribe(cb);
-        }
-        inline void unregisterRealFreqListener(FreqUpdateEvent::Subscription subscription) {
-            this->realFreqUpdateEvent.unsubscribe(subscription);
         }
 
         inline AppIdUpdateEvent::Subscription registerAppIdListener(AppIdUpdateEvent::Callback cb) {

@@ -37,14 +37,14 @@ include $(DEVKITPRO)/libnx/switch_rules
 #   of a homebrew executable (.nro). This is intended to be used for sysmodules.
 #   NACP building is skipped as well.
 #---------------------------------------------------------------------------------
-TARGET		:=	sys-clk-manager
+APP_TITLE	?=	sys-clk
+APP_AUTHOR	:=	RetroNX Team
+TARGET		:=	$(APP_TITLE)
 BUILD		:=	build.nx
 SOURCES		:=	src ../common/src ../common/src/client
 RESOURCES	:=	resources
 DATA		:=	data
 INCLUDES	:=	../common/include
-APP_TITLE	:=	sys-clk manager
-APP_AUTHOR	:=	RetroNX Team
 
 ROMFS				:=	$(BUILD)/romfs
 BOREALIS_PATH		:=	lib/borealis
@@ -54,8 +54,7 @@ APP_RESOURCES		:=	romfs:/
 #---------------------------------------------------------------------------------
 # version control constants
 #---------------------------------------------------------------------------------
-TARGET_VERSION	:= $(shell git describe --tags)
-APP_VERSION		:= $(TARGET_VERSION)
+APP_VERSION	?= v1.0.2
 
 #---------------------------------------------------------------------------------
 # options for code generation

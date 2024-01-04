@@ -40,14 +40,14 @@ MainFrame::MainFrame() : TabFrame()
 
     AppProfilesTab *tab = new AppProfilesTab();
 
-    this->addTab("Status", new StatusTab(this->refreshTask));
-    this->addTab("Application Profiles", tab);
-    this->addTab("Advanced Settings", new AdvancedSettingsTab());
+    this->addTab("application/manager/mainframe/statusTab/name"_i18n, new StatusTab(this->refreshTask));
+    this->addTab("application/manager/mainframe/applicationProfilesTab/name"_i18n, tab);
+    this->addTab("application/manager/mainframe/advancedSettingsTab/name"_i18n, new AdvancedSettingsTab());
 
     this->addSeparator();
 
-    this->addTab("Cheat Sheet", new CheatSheetTab());
-    this->addTab("About", new AboutTab());
+    this->addTab("application/manager/mainframe/cheatSheetTab/name"_i18n, new CheatSheetTab());
+    this->addTab("application/manager/mainframe/aboutTab/name"_i18n, new AboutTab());
 }
 
 MainFrame::~MainFrame()

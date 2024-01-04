@@ -34,7 +34,7 @@
 AppProfilesTab::AppProfilesTab()
 {
     // Filter toggle
-    this->filterListItem = new brls::ToggleListItem("Show applications with no profile", this->showEmptyProfiles, "", "Yes", "No");
+    this->filterListItem = new brls::ToggleListItem("application/manager/mainframe/applicationProfilesTab/filterToggleListItem"_i18n, this->showEmptyProfiles, "", "application/manager/mainframe/applicationProfilesTab/filterEnabledToggleListItemText"_i18n, "application/manager/mainframe/applicationProfilesTab/filterDisenabledToggleListItemText"_i18n);
     filterListItem->getClickEvent()->subscribe([this](View* v)
     {
         this->refreshFilter();
@@ -62,18 +62,18 @@ AppProfilesTab::AppProfilesTab()
     title->tid = tid;
 
     memset(title->name, 0, sizeof(title->name));
-    strncpy(title->name,"Global default profile", sizeof(title->name)-1);
+    strncpy(title->name, "application/manager/mainframe/applicationProfilesTab/globalDefaultProfileListItem"_i18n.c_str(), sizeof(title->name)-1);
 
     // Profile
     rc = sysclkIpcGetProfileCount(tid, &title->profileCount);
     if (R_FAILED(rc))
     {
-        errorResult("sysclkIpcGetProfileCount", rc);
+        errorResult("application/manager/mainframe/applicationProfilesTab/sysclkIpcGetProfileCountErrorRsult"_i18n, rc);
         free(title);
     }
 
     // Add the ListItem
-    brls::ListItem *listItem = new brls::ListItem(formatListItemTitle(std::string(title->name)), "Global default profile for applications without an application specific profile. Can also be used as a permanent global override config if there are no application profiles at all.", formatTid(title->tid));
+    brls::ListItem *listItem = new brls::ListItem(formatListItemTitle(std::string(title->name)), "application/manager/mainframe/applicationProfilesTab/globalDefaultProfileDescriptionListItemText"_i18n, formatTid(title->tid));
 
     title->listItem = listItem;
 
@@ -110,7 +110,7 @@ AppProfilesTab::AppProfilesTab()
         rc = nsListApplicationRecord(&record, sizeof(record), i, &recordCount);
         if (R_FAILED(rc))
         {
-            errorResult("nsListApplicationRecord", rc);
+            errorResult("application/manager/mainframe/applicationProfilesTab/nsListApplicationRecordErrorRsult"_i18n, rc);
             break;
         }
 
@@ -123,7 +123,7 @@ AppProfilesTab::AppProfilesTab()
         rc = nsGetApplicationControlData(NsApplicationControlSource_Storage, tid, &controlData, sizeof(controlData), &controlSize);
         if (R_FAILED(rc))
         {
-            errorResult("nsGetApplicationControlData", rc);
+            errorResult("application/manager/mainframe/applicationProfilesTab/nsGetApplicationControlDataErrorRsult"_i18n, rc);
             break;
         }
 
@@ -131,12 +131,12 @@ AppProfilesTab::AppProfilesTab()
         rc = nacpGetLanguageEntry(&controlData.nacp, &langEntry);
         if (R_FAILED(rc))
         {
-            errorResult("nacpGetLanguageEntry", rc);
+            errorResult("application/manager/mainframe/applicationProfilesTab/nacpGetLanguageEntryErrorRsult"_i18n, rc);
             break;
         }
 
         // Name
-        if (!langEntry->name)
+        if (langEntry->name[0] == '\0')
         {
             i++;
             continue;
@@ -154,7 +154,7 @@ AppProfilesTab::AppProfilesTab()
         rc = sysclkIpcGetProfileCount(tid, &title->profileCount);
         if (R_FAILED(rc))
         {
-            errorResult("sysclkIpcGetProfileCount", rc);
+            errorResult("application/manager/mainframe/applicationProfilesTab/sysclkIpcGetProfileCountErrorRsult"_i18n, rc);
             free(title);
             break;
         }
@@ -203,12 +203,12 @@ void AppProfilesTab::updateEmptyListLabel(bool animate)
 {
     if (this->items.empty())
     {
-        this->emptyListLabel->setText("\uE140  You don't have any application installed on your Nintendo Switch.");
+        this->emptyListLabel->setText("application/manager/mainframe/applicationProfilesTab/itemEmptyUpdateEmptyListLabelText"_i18n);
         this->emptyListLabel->show([](){}, animate);
     }
     else if (!this->showEmptyProfiles && this->profilesItems.empty())
     {
-        this->emptyListLabel->setText("\uE140  You don't have any application with a defined profile at the moment.");
+        this->emptyListLabel->setText("application/manager/mainframe/applicationProfilesTab/profileItemsEmptyUpdateEmptyListLabelText"_i18n);
         this->emptyListLabel->show([](){}, animate);
     }
     else
@@ -238,7 +238,7 @@ void AppProfilesTab::willAppear(bool resetState)
 
         if (R_FAILED(rc))
         {
-            errorResult("sysclkIpcGetProfileCount", rc);
+            errorResult("application/manager/mainframe/applicationProfilesTab/sysclkIpcGetProfileCountErrorResult"_i18n, rc);
             this->editingTitle = nullptr;
             return;
         }

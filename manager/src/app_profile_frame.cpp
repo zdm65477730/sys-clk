@@ -30,14 +30,14 @@
 
 AppProfileFrame::AppProfileFrame(Title* title) : ThumbnailFrame(), title(title)
 {
-    this->setTitle("Edit application profile");
+    this->setTitle("application/manager/appprofileframe/textTitle"_i18n);
     this->setIcon(new brls::MaterialIcon("\uE315"));
 
     // Get the freqs
     Result rc = sysclkIpcGetProfiles(title->tid, &this->profiles);
 
     if (R_FAILED(rc))
-        errorResult("sysclkIpcGetProfiles", rc);
+        errorResult("application/manager/appprofileframe/sysclkIpcGetProfilesErrorResult"_i18n, rc);
 
     // Setup the right sidebar
     this->getSidebar()->setThumbnail(title->icon, sizeof(title->icon));
@@ -61,13 +61,13 @@ AppProfileFrame::AppProfileFrame(Title* title) : ThumbnailFrame(), title(title)
         if (R_SUCCEEDED(rc))
         {
             // TODO: set the tick mark color to blue/green once borealis has rich text support
-            brls::Application::notify("\uE14B Profile saved");
+            brls::Application::notify("application/manager/appprofileframe/sysclkIpcSetProfilesNotify"_i18n);
             brls::Application::popView(brls::ViewAnimation::SLIDE_RIGHT);
         }
         else
         {
-            errorResult("sysclkIpcSetProfiles", rc);
-            brls::Application::notify("An error occured while saving the profile - see logs for more details");
+            errorResult("application/manager/appprofileframe/sysclkIpcSetProfilesErrorResult"_i18n, rc);
+            brls::Application::notify("application/manager/appprofileframe/sysclkIpcSetProfilesErrorNotify"_i18n);
         }
     });
 
@@ -87,7 +87,7 @@ AppProfileFrame::AppProfileFrame(Title* title) : ThumbnailFrame(), title(title)
 void AppProfileFrame::addFreqs(brls::List* list, SysClkProfile profile)
 {
     // Get the freqs
-    list->addView(new brls::Header(std::string(sysclkFormatProfile(profile, true))));
+    list->addView(new brls::Header(formatProfile(profile)));
 
     // CPU
     brls::SelectListItem* cpuListItem = createFreqListItem(SysClkModule_CPU, this->profiles.mhzMap[profile][SysClkModule_CPU]);
@@ -96,9 +96,9 @@ void AppProfileFrame::addFreqs(brls::List* list, SysClkProfile profile)
 
     cpuListItem->getValueSelectedEvent()->subscribe([this, profile](int result) {
         this->onProfileChanged();
-        this->profiles.mhzMap[profile][SysClkModule_CPU] = result == 0 ? result : g_freq_table_hz[SysClkModule_CPU][result];
+        this->profiles.mhzMap[profile][SysClkModule_CPU] = result == 0 ? result : sysclk_g_freq_table_cpu_hz[result - 1];
 
-        brls::Logger::debug("Caching freq for module %d and profile %d to %" PRIu32, SysClkModule_CPU, profile, this->profiles.mhzMap[profile][SysClkModule_CPU]);
+        brls::Logger::debug("application/manager/appprofileframe/cacheFreqForModuleAndProfileDebug"_i18n + PRIu32, SysClkModule_CPU, profile, this->profiles.mhzMap[profile][SysClkModule_CPU]);
     });
     list->addView(cpuListItem);
 
@@ -109,9 +109,9 @@ void AppProfileFrame::addFreqs(brls::List* list, SysClkProfile profile)
 
     gpuListItem->getValueSelectedEvent()->subscribe([this, profile](int result) {
         this->onProfileChanged();
-        this->profiles.mhzMap[profile][SysClkModule_GPU] = result == 0 ? result : g_freq_table_hz[SysClkModule_GPU][result];
+        this->profiles.mhzMap[profile][SysClkModule_GPU] = result == 0 ? result : sysclk_g_freq_table_gpu_hz[result - 1];
 
-        brls::Logger::debug("Caching freq for module %d and profile %d to %" PRIu32, SysClkModule_GPU, profile, this->profiles.mhzMap[profile][SysClkModule_GPU]);
+        brls::Logger::debug("application/manager/appprofileframe/cacheFreqForModuleAndProfileDebug"_i18n + PRIu32, SysClkModule_GPU, profile, this->profiles.mhzMap[profile][SysClkModule_GPU]);
     });
     list->addView(gpuListItem);
 
@@ -122,9 +122,9 @@ void AppProfileFrame::addFreqs(brls::List* list, SysClkProfile profile)
 
     memListItem->getValueSelectedEvent()->subscribe([this, profile](int result) {
         this->onProfileChanged();
-        this->profiles.mhzMap[profile][SysClkModule_MEM] = result == 0 ? result : g_freq_table_hz[SysClkModule_MEM][result];
+        this->profiles.mhzMap[profile][SysClkModule_MEM] = result == 0 ? result : sysclk_g_freq_table_mem_hz[result - 1];
 
-        brls::Logger::debug("Caching freq for module %d and profile %d to %" PRIu32, SysClkModule_MEM, profile, this->profiles.mhzMap[profile][SysClkModule_MEM]);
+        brls::Logger::debug("application/manager/appprofileframe/cacheFreqForModuleAndProfileDebug"_i18n + PRIu32, SysClkModule_MEM, profile, this->profiles.mhzMap[profile][SysClkModule_MEM]);
     });
     list->addView(memListItem);
 }
@@ -132,20 +132,20 @@ void AppProfileFrame::addFreqs(brls::List* list, SysClkProfile profile)
 void AppProfileFrame::onProfileChanged()
 {
     this->getSidebar()->getButton()->setState(brls::ButtonState::ENABLED);
-    this->updateActionHint(brls::Key::B, "Cancel");
+    this->updateActionHint(brls::Key::B, "application/manager/appprofileframe/updateCancelActionHintOnProfileChanged"_i18n);
 }
 
 bool AppProfileFrame::onCancel()
 {
     if (this->hasProfileChanged())
     {
-        brls::Dialog* dialog = new brls::Dialog("You have unsaved changes to this profile!\nAre you sure you want to discard them?");
+        brls::Dialog* dialog = new brls::Dialog("application/manager/appprofileframe/hasProfileChangedDialogOnCancel"_i18n);
 
-        dialog->addButton("No", [dialog](brls::View* view){
+        dialog->addButton("application/manager/appprofileframe/hasProfileChangedDialogButtonNoOnCancel"_i18n, [dialog](brls::View* view){
             dialog->close();
         });
 
-        dialog->addButton("Yes", [dialog](brls::View* view){
+        dialog->addButton("application/manager/appprofileframe/hasProfileChangedDialogButtonYesOnCancel"_i18n, [dialog](brls::View* view){
             dialog->close([](){
                 brls::Application::popView(brls::ViewAnimation::SLIDE_RIGHT);
             });

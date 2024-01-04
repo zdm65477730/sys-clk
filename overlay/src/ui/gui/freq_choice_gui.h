@@ -16,19 +16,16 @@
 
 using FreqChoiceListener = std::function<bool(std::uint32_t hz)>;
 
-#define FREQ_DEFAULT_TEXT "Do not override"
-
 class FreqChoiceGui : public BaseMenuGui
 {
     protected:
         std::uint32_t selectedHz;
         std::uint32_t* hzList;
-        std::uint32_t hzCount;
         FreqChoiceListener listener;
         tsl::elm::ListItem* createFreqListItem(std::uint32_t hz, bool selected);
 
     public:
-        FreqChoiceGui(std::uint32_t selectedHz, std::uint32_t* hzList, std::uint32_t hzCount, FreqChoiceListener listener);
+        FreqChoiceGui(std::uint32_t selectedHz, std::uint32_t* hzList, FreqChoiceListener listener);
         ~FreqChoiceGui() {}
         void listUI() override;
 };

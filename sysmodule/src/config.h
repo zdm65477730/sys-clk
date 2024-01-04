@@ -14,11 +14,10 @@
 #include <map>
 #include <mutex>
 #include <initializer_list>
-#include <string>
 #include <switch.h>
 #include <minIni.h>
 #include <nxExt.h>
-#include "board.h"
+#include "clocks.h"
 
 #define CONFIG_VAL_SECTION "values"
 
@@ -28,7 +27,7 @@ class Config
     Config(std::string path);
     virtual ~Config();
 
-    static Config* CreateDefault();
+    static Config *CreateDefault();
 
     bool Refresh();
 
@@ -53,11 +52,11 @@ class Config
     void Close();
 
     time_t CheckModificationTime();
-    std::uint32_t FindClockMHz(std::uint64_t tid, SysClkModule module, SysClkProfile profile);
+    std::uint32_t FindClockMhz(std::uint64_t tid, SysClkModule module, SysClkProfile profile);
     std::uint32_t FindClockHzFromProfiles(std::uint64_t tid, SysClkModule module, std::initializer_list<SysClkProfile> profiles);
-    static int BrowseIniFunc(const char* section, const char* key, const char* value, void* userdata);
+    static int BrowseIniFunc(const char* section, const char* key, const char* value, void *userdata);
 
-    std::map<std::tuple<std::uint64_t, SysClkProfile, SysClkModule>, std::uint32_t> profileMHzMap;
+    std::map<std::tuple<std::uint64_t, SysClkProfile, SysClkModule>, std::uint32_t> profileMhzMap;
     std::map<std::uint64_t, std::uint8_t> profileCountMap;
     bool loaded;
     std::string path;

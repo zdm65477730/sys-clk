@@ -13,17 +13,16 @@
 #include <atomic>
 #include <nxExt.h>
 #include <sysclk.h>
-#include "clock_manager.h"
 
 class IpcService
 {
   public:
-    IpcService(ClockManager* clockMgr);
+    IpcService();
     virtual ~IpcService();
     void SetRunning(bool running);
 
   protected:
-    static void ProcessThreadFunc(void* arg);
+    static void ProcessThreadFunc(void *arg);
     static Result ServiceHandlerFunc(void* arg, const IpcServerRequest* r, std::uint8_t* out_data, size_t* out_dataSize);
 
     Result GetApiVersion(u32* out_version);
@@ -37,11 +36,9 @@ class IpcService
     Result SetOverride(SysClkIpc_SetOverride_Args* args);
     Result GetConfigValues(SysClkConfigValueList* out_configValues);
     Result SetConfigValues(SysClkConfigValueList* configValues);
-    Result GetFreqList(SysClkIpc_GetFreqList_Args* args, std::uint32_t* out_list, std::size_t size, std::uint32_t* out_count);
 
     bool running;
     Thread thread;
     LockableMutex threadMutex;
     IpcServer server;
-    ClockManager* clockMgr;
 };

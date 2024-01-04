@@ -12,7 +12,7 @@
 
 #include "types.h"
 #include "../config.h"
-#include "../board.h"
+#include "../clocks.h"
 #include "../ipc.h"
 
 bool sysclkIpcRunning();
@@ -30,7 +30,6 @@ Result sysclkIpcGetProfiles(u64 tid, SysClkTitleProfileList* out_profiles);
 Result sysclkIpcSetProfiles(u64 tid, SysClkTitleProfileList* profiles);
 Result sysclkIpcGetConfigValues(SysClkConfigValueList* out_configValues);
 Result sysclkIpcSetConfigValues(SysClkConfigValueList* configValues);
-Result sysclkIpcGetFreqList(SysClkModule module, u32* list, u32 maxCount, u32* outCount);
 
 static inline Result sysclkIpcRemoveOverride(SysClkModule module)
 {
