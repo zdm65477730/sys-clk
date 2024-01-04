@@ -2,7 +2,7 @@ APP_TITLE = sys-clk
 export APP_TITLE
 APP_TITID := $(shell grep -oP '"title_id":\s*"0x\K(\w+)' $(CURDIR)/sysmodule/perms.json)
 
-APP_VERSION	:= v1.0.3
+APP_VERSION	:= v1.0.2
 ifeq ($(RELEASE),)
 	APP_VERSION	:=	$(APP_VERSION)-$(shell git describe --always)
 endif
@@ -27,6 +27,7 @@ all:
 	@cp -f $(CURDIR)/overlay/out/$(APP_TITLE).ovl $(SD_OUT)/switch/.overlays/$(APP_TITLE).ovl
 	@cp -f $(CURDIR)/overlay/lang/*.json $(SD_OUT)/switch/.overlays/lang/$(APP_TITLE)/
 	@cp -f $(CURDIR)/config.ini.template $(SD_OUT)/config/$(APP_TITLE)/config.ini.template
+	@>$(SD_OUT)/config/$(APP_TITLE)/log.flag
 	@cd $(CURDIR)/SdOut; zip -r -q -9 $(APP_TITLE).zip atmosphere config switch; cd $(CURDIR)
 
 clean:
