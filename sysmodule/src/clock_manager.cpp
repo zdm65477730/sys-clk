@@ -10,15 +10,53 @@
 
 #include "errors.h"
 #include "clock_manager.h"
+#include <cstring>
 #include "file_utils.h"
-#include "clocks.h"
+#include "board.h"
 #include "process_management.h"
+#include "errors.h"
 
-ClockManager* ClockManager::instance = NULL;
-
-ClockManager* ClockManager::GetInstance()
+ClockManager::ClockManager()
 {
-    return instance;
+    this->config = Config::CreateDefault();
+
+    this->context = new SysClkContext;
+    this->context->applicationId = 0;
+    this->context->profile = SysClkProfile_Handheld;
+    this->context->enabled = false;
+    for(unsigned int module = 0; module < SysClkModule_EnumMax; module++)
+    {
+        this->context->freqs[module] = 0;
+        this->context->realFreqs[module] = 0;
+        this->context->overrideFreqs[module] = 0;
+        this->RefreshFreqTableRow((SysClkModule)module);
+    }
+
+    this->running = false;
+    this->lastTempLogNs = 0;
+    this->lastCsvWriteNs = 0;
+}
+
+ClockManager::~ClockManager()
+{
+    delete this->config;
+    delete this->context;
+}
+
+SysClkContext ClockManager::GetCurrentContext()
+{
+    std::scoped_lock lock{this->contextMutex};
+    return *this->context;
+}
+
+Config* ClockManager::GetConfig()
+{
+    return this->config;
+}
+
+void ClockManager::SetRunning(bool running)
+{
+    this->running = running;
 }
 
 bool ClockManager::IsCpuBoostMode()
@@ -45,54 +83,113 @@ bool ClockManager::IsGpuThrottleMode()
         return false;
 }
 
-
-void ClockManager::Exit()
-{
-    if(instance)
-    {
-        delete instance;
-    }
-}
-
-void ClockManager::Initialize()
-{
-    if(!instance)
-    {
-        instance = new ClockManager();
-    }
-}
-
-ClockManager::ClockManager()
-{
-    this->config = Config::CreateDefault();
-    this->context = new SysClkContext;
-    this->context->applicationId = 0;
-    this->context->profile = SysClkProfile_Handheld;
-    this->context->enabled = false;
-    for(unsigned int i = 0; i < SysClkModule_EnumMax; i++)
-    {
-        this->context->freqs[i] = 0;
-        this->context->overrideFreqs[i] = 0;
-    }
-    this->running = false;
-    this->lastTempLogNs = 0;
-    this->lastCsvWriteNs = 0;
-}
-
-ClockManager::~ClockManager()
-{
-    delete this->config;
-    delete this->context;
-}
-
-void ClockManager::SetRunning(bool running)
-{
-    this->running = running;
-}
-
 bool ClockManager::Running()
 {
     return this->running;
+}
+
+void ClockManager::GetFreqList(SysClkModule module, std::uint32_t* list, std::uint32_t maxCount, std::uint32_t* outCount)
+{
+    ASSERT_ENUM_VALID(SysClkModule, module);
+
+    *outCount = std::min(maxCount, this->freqTable[module].count);
+    memcpy(list, &this->freqTable[module].list[0], *outCount * sizeof(this->freqTable[0].list[0]));
+}
+
+bool ClockManager::IsAssignableHz(SysClkModule module, std::uint32_t hz)
+{
+    switch(module)
+    {
+        case SysClkModule_CPU:
+            return hz >= 612000000;
+        case SysClkModule_MEM:
+            return hz == 204000000 || hz >= 665600000;
+        default:
+            return true;
+    }
+}
+
+std::uint32_t ClockManager::GetMaxAllowedHz(SysClkModule module, SysClkProfile profile)
+{
+    if(module == SysClkModule_GPU)
+    {
+        if(profile < SysClkProfile_HandheldCharging)
+        {
+            return Board::GetSocType() == SysClkSocType_Mariko ? 614400000 : 460800000;
+        }
+        else if(profile <= SysClkProfile_HandheldChargingUSB)
+        {
+            return 768000000;
+        }
+    }
+
+    return 0;
+}
+
+std::uint32_t ClockManager::GetNearestHz(SysClkModule module, std::uint32_t inHz, std::uint32_t maxHz)
+{
+    std::uint32_t* freqs = &this->freqTable[module].list[0];
+    size_t count = this->freqTable[module].count - 1;
+
+    size_t i = 0;
+    while(i < count)
+    {
+        if (maxHz > 0 && freqs[i] >= maxHz)
+        {
+            break;
+        }
+
+        if (inHz <= ((std::uint64_t)freqs[i] + freqs[i + 1]) / 2)
+        {
+            break;
+        }
+
+        i++;
+    }
+
+    return freqs[i];
+}
+
+bool ClockManager::ConfigIntervalTimeout(SysClkConfigValue intervalMsConfigValue, std::uint64_t ns, std::uint64_t* lastLogNs)
+{
+    std::uint64_t logInterval = this->GetConfig()->GetConfigValue(intervalMsConfigValue) * 1000000ULL;
+    bool shouldLog = logInterval && ((ns - *lastLogNs) > logInterval);
+
+    if(shouldLog)
+    {
+        *lastLogNs = ns;
+    }
+
+    return shouldLog;
+}
+
+void ClockManager::RefreshFreqTableRow(SysClkModule module)
+{
+    std::scoped_lock lock{this->contextMutex};
+
+    std::uint32_t freqs[SYSCLK_FREQ_LIST_MAX];
+    std::uint32_t count;
+
+    FileUtils::LogLine("[mgr] %s freq list refresh", Board::GetModuleName(module, true));
+    Board::GetFreqList(module, &freqs[0], SYSCLK_FREQ_LIST_MAX, &count);
+
+    std::uint32_t* hz = &this->freqTable[module].list[0];
+    this->freqTable[module].count = 0;
+    for(std::uint32_t i = 0; i < count; i++)
+    {
+        if(!this->IsAssignableHz(module, freqs[i]))
+        {
+            continue;
+        }
+
+        *hz = freqs[i];
+        FileUtils::LogLine("[mgr] %02u - %u - %u.%u MHz", this->freqTable[module].count, *hz, *hz/1000000, *hz/100000 - *hz/1000000*10);
+
+        this->freqTable[module].count++;
+        hz++;
+    }
+
+    FileUtils::LogLine("[mgr] count = %u", this->freqTable[module].count);
 }
 
 void ClockManager::Tick()
@@ -105,53 +202,62 @@ void ClockManager::Tick()
         // reset clocks after config change, otherwise choosing do not override  for cpu/gpu/mem will not reset clocks to stock properly
         if(configRefreshed)
         {
-            Clocks::ResetToStock();
+            Board::ResetToStock();
         }
-        std::uint32_t hz = 0;
+
         std::uint32_t ug = 0;
         std::uint32_t ogb = 0;
         std::uint32_t ocb = 0;
+        
+        std::uint32_t targetHz = 0;
+        std::uint32_t maxHz = 0;
+        std::uint32_t nearestHz = 0;
         for (unsigned int module = 0; module < SysClkModule_EnumMax; module++)
         {
-            hz = this->context->overrideFreqs[module];
+            targetHz = this->context->overrideFreqs[module];
 
-            if(!hz)
+            if(!targetHz)
             {
-                hz = this->config->GetAutoClockHz(this->context->applicationId, (SysClkModule)module, this->context->profile);
+                targetHz = this->config->GetAutoClockHz(this->context->applicationId, (SysClkModule)module, this->context->profile);
             }
             
             // Global default profile for applications without an application specific profile
-            if(!hz)
+            if(!targetHz)
             {
-                hz = this->config->GetAutoClockHz(9999999999999999, (SysClkModule)module, this->context->profile);
+                targetHz = this->config->GetAutoClockHz(9999999999999999, (SysClkModule)module, this->context->profile);
             }
 
-            if (hz)
+            if (targetHz)
             {
+                
                 ug = this->GetConfig()->GetConfigValue(SysClkConfigValue_UncappedGPUEnabled);
                 
                 if (1 == ug)
                 {
-                    hz = Clocks::GetNearestHz((SysClkModule)module, SysClkProfile_HandheldChargingOfficial, hz);
+                    maxHz = this->GetMaxAllowedHz((SysClkModule)module, SysClkProfile_HandheldChargingOfficial);
                 }
                 else
                 {
-                
-                    hz = Clocks::GetNearestHz((SysClkModule)module, this->context->profile, hz);
-                    
+                    maxHz = this->GetMaxAllowedHz((SysClkModule)module, this->context->profile);
                 }
+                nearestHz = this->GetNearestHz((SysClkModule)module, targetHz, maxHz);
+                
+                // BOOST MODE override: let boost mode do its job and then return back to sys/custom values
+                
+                ogb = 1;
+                ocb = 1;
 
-                // BOOST MODE override: let boost mode do its job and then return back to sys/custom values (this can be toggled on and off)
-                
-                ogb = this->GetConfig()->GetConfigValue(SysClkConfigValue_OverrideGPUBoostEnabled);
-                ocb = this->GetConfig()->GetConfigValue(SysClkConfigValue_OverrideCPUBoostEnabled);
-                
-                if ((( ((ocb == 0) || (!IsCpuBoostMode())) && module == 0) || ( ((ogb == 0) || (!IsGpuThrottleMode())) && module == 1) || (!(hz == 1600000000 && this->context->freqs[module] > 1600000000) && module == 2)) && hz != this->context->freqs[module] && this->context->enabled)
- 
+                if ((( ((ocb == 0) || (!IsCpuBoostMode())) && module == 0) || ( ((ogb == 0) || (!IsGpuThrottleMode())) && module == 1) || (!(nearestHz == 1600000000 && this->context->freqs[module] > 1600000000) && module == 2)) && nearestHz != this->context->freqs[module] && this->context->enabled)
                 {
-                    FileUtils::LogLine("[mgr] %s clock set : %u.%u Mhz", Clocks::GetModuleName((SysClkModule)module, true), hz/1000000, hz/100000 - hz/1000000*10);
-                    Clocks::SetHz((SysClkModule)module, hz);
-                    this->context->freqs[module] = hz;
+                    FileUtils::LogLine(
+                        "[mgr] %s clock set : %u.%u MHz (target = %u.%u MHz)",
+                        Board::GetModuleName((SysClkModule)module, true),
+                        nearestHz/1000000, nearestHz/100000 - nearestHz/1000000*10,
+                        targetHz/1000000, targetHz/100000 - targetHz/1000000*10
+                    );
+
+                    Board::SetHz((SysClkModule)module, nearestHz);
+                    this->context->freqs[module] = nearestHz;
                 }
             }
         }
@@ -183,7 +289,7 @@ bool ClockManager::RefreshContext()
         hasChanged = true;
     }
 
-    SysClkProfile profile = Clocks::GetCurrentProfile();
+    SysClkProfile profile = Board::GetProfile();
     
     //choose profile
     std::uint32_t fp = this->GetConfig()->GetConfigValue(SysClkConfigValue_FakeProfileModeEnabled);
@@ -199,7 +305,7 @@ bool ClockManager::RefreshContext()
     
     if (profile != this->context->profile)
     {
-        FileUtils::LogLine("[mgr] Profile change: %s", Clocks::GetProfileName(profile, true));
+        FileUtils::LogLine("[mgr] Profile change: %s", Board::GetProfileName(profile, true));
         this->context->profile = profile;
         hasChanged = true;
     }
@@ -207,30 +313,31 @@ bool ClockManager::RefreshContext()
     // restore clocks to stock values on app or profile change
     if(hasChanged)
     {
-        Clocks::ResetToStock();
+        Board::ResetToStock();
+        this->WaitForNextTick();
     }
 
     std::uint32_t hz = 0;
     for (unsigned int module = 0; module < SysClkModule_EnumMax; module++)
     {
-        hz = Clocks::GetCurrentHz((SysClkModule)module);
+        hz = Board::GetHz((SysClkModule)module);
         if (hz != 0 && hz != this->context->freqs[module])
         {
-            FileUtils::LogLine("[mgr] %s clock change: %u.%u Mhz", Clocks::GetModuleName((SysClkModule)module, true), hz/1000000, hz/100000 - hz/1000000*10);
+            FileUtils::LogLine("[mgr] %s clock change: %u.%u MHz", Board::GetModuleName((SysClkModule)module, true), hz/1000000, hz/100000 - hz/1000000*10);
             this->context->freqs[module] = hz;
             hasChanged = true;
         }
 
         hz = this->GetConfig()->GetOverrideHz((SysClkModule)module);
         
-        // Override MEM to 1600
+        // Override MEM to MAX (1600 or higher if using loader.kip or own patched version of atmosphere)
         if (module == 2)
         {
             std::uint32_t om = this->GetConfig()->GetConfigValue(SysClkConfigValue_OverrideMEMEnabled);
             
             if (1 == om)
             {
-                hz = 1600000000;
+                hz = Board::GetMaxMemFreq();
             }
 
         }
@@ -239,57 +346,69 @@ bool ClockManager::RefreshContext()
         {
             if(hz)
             {
-                FileUtils::LogLine("[mgr] %s override change: %u.%u Mhz", Clocks::GetModuleName((SysClkModule)module, true), hz/1000000, hz/100000 - hz/1000000*10);
+                FileUtils::LogLine("[mgr] %s override change: %u.%u MHz", Board::GetModuleName((SysClkModule)module, true), hz/1000000, hz/100000 - hz/1000000*10);
             }
             else
             {
-                FileUtils::LogLine("[mgr] %s override disabled", Clocks::GetModuleName((SysClkModule)module, true));
-                Clocks::ResetToStock();
-                
+                FileUtils::LogLine("[mgr] %s override disabled", Board::GetModuleName((SysClkModule)module, true));
+                Board::ResetToStock();
             }
             this->context->overrideFreqs[module] = hz;
             hasChanged = true;
         }
     }
 
+    std::uint64_t ns = armTicksToNs(armGetSystemTick());
+
     // temperatures do not and should not force a refresh, hasChanged untouched
     std::uint32_t millis = 0;
-    std::uint64_t ns = armTicksToNs(armGetSystemTick());
-    std::uint64_t tempLogInterval = this->GetConfig()->GetConfigValue(SysClkConfigValue_TempLogIntervalMs) * 1000000ULL;
-    bool shouldLogTemp = tempLogInterval && ((ns - this->lastTempLogNs) > tempLogInterval);
+    bool shouldLogTemp = this->ConfigIntervalTimeout(SysClkConfigValue_TempLogIntervalMs, ns, &this->lastTempLogNs);
     for (unsigned int sensor = 0; sensor < SysClkThermalSensor_EnumMax; sensor++)
     {
-        millis = Clocks::GetTemperatureMilli((SysClkThermalSensor)sensor);
+        millis = Board::GetTemperatureMilli((SysClkThermalSensor)sensor);
         if(shouldLogTemp)
         {
-            FileUtils::LogLine("[mgr] %s temp: %u.%u °C", Clocks::GetThermalSensorName((SysClkThermalSensor)sensor, true), millis/1000, (millis - millis/1000*1000) / 100);
+            FileUtils::LogLine("[mgr] %s temp: %u.%u °C", Board::GetThermalSensorName((SysClkThermalSensor)sensor, true), millis/1000, (millis - millis/1000*1000) / 100);
         }
         this->context->temps[sensor] = millis;
     }
 
-    if(shouldLogTemp)
+    // power stats do not and should not force a refresh, hasChanged untouched
+    std::int32_t mw = 0;
+    bool shouldLogPower = this->ConfigIntervalTimeout(SysClkConfigValue_PowerLogIntervalMs, ns, &this->lastPowerLogNs);
+    for (unsigned int sensor = 0; sensor < SysClkPowerSensor_EnumMax; sensor++)
     {
-        this->lastTempLogNs = ns;
+        mw = Board::GetPowerMw((SysClkPowerSensor)sensor);
+        if(shouldLogPower)
+        {
+            FileUtils::LogLine("[mgr] Power %s: %d mW", Board::GetPowerSensorName((SysClkPowerSensor)sensor, false), mw);
+        }
+        this->context->power[sensor] = mw;
     }
 
-    std::uint64_t csvWriteInterval = this->GetConfig()->GetConfigValue(SysClkConfigValue_CsvWriteIntervalMs) * 1000000ULL;
+    // real freqs do not and should not force a refresh, hasChanged untouched
+    std::uint32_t realHz = 0;
+    bool shouldLogFreq = this->ConfigIntervalTimeout(SysClkConfigValue_FreqLogIntervalMs, ns, &this->lastFreqLogNs);
+    for (unsigned int module = 0; module < SysClkModule_EnumMax; module++)
+    {
+        realHz = Board::GetRealHz((SysClkModule)module);
+        if(shouldLogFreq)
+        {
+            FileUtils::LogLine("[mgr] %s real freq: %u.%u MHz", Board::GetModuleName((SysClkModule)module, true), realHz/1000000, realHz/100000 - realHz/1000000*10);
+        }
+        this->context->realFreqs[module] = realHz;
+    }
 
-    if(csvWriteInterval && ((ns - this->lastCsvWriteNs) > csvWriteInterval))
+    // ram load do not and should not force a refresh, hasChanged untouched
+    for (unsigned int loadSource = 0; loadSource < SysClkRamLoad_EnumMax; loadSource++)
+    {
+        this->context->ramLoad[loadSource] = Board::GetRamLoad((SysClkRamLoad)loadSource);
+    }
+
+    if(this->ConfigIntervalTimeout(SysClkConfigValue_CsvWriteIntervalMs, ns, &this->lastCsvWriteNs))
     {
         FileUtils::WriteContextToCsv(this->context);
-        this->lastCsvWriteNs = ns;
     }
 
     return hasChanged;
-}
-
-SysClkContext ClockManager::GetCurrentContext()
-{
-    std::scoped_lock lock{this->contextMutex};
-    return *this->context;
-}
-
-Config* ClockManager::GetConfig()
-{
-    return this->config;
 }

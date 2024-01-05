@@ -22,6 +22,8 @@
 #include <stdlib.h>
 #include <string>
 
+#include <borealis.hpp>
+
 #include "main_frame.h"
 #include "logo.h"
 
@@ -62,9 +64,15 @@ int main(int argc, char* argv[])
         brls::Logger::error("application/manager/main/sysclkIpcInitError"_i18n);
         brls::Application::crash("application/manager/main/sysclkIpcInitCrash"_i18n);
     }
-    else if (SYSCLK_IPC_API_VERSION != apiVersion) {
+    else if (SYSCLK_IPC_API_VERSION != apiVersion)
+    {
         brls::Logger::error("application/manager/main/sysclkIpcVersionMismatchError"_i18n, SYSCLK_IPC_API_VERSION, apiVersion);
         brls::Application::crash("application/manager/main/sysclkIpcVersionMismatchCrash"_i18n);
+    }
+    else if (R_FAILED(cacheFreqList()))
+    {
+        brls::Logger::error("application/manager/main/FailedGetFreqError"_i18n);
+        brls::Application::crash("application/manager/main/FailedGetFreqCrash"_i18n);
     }
     else
     {

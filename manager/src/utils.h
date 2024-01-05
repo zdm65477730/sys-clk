@@ -22,8 +22,7 @@
 
 #include <string>
 
-#include <sysclk/clocks.h>
-#include <sysclk/config.h>
+#include <sysclk.h>
 #include "ipc/ipc.h"
 
 #include <borealis.hpp>
@@ -31,8 +30,13 @@ using namespace brls::i18n::literals;
 
 #define APP_ASSET(p) APP_RESOURCES p
 
+extern uint32_t g_freq_table_hz[SysClkModule_EnumMax][SYSCLK_FREQ_LIST_MAX+1];
+
+
+
+Result cacheFreqList();
 std::string formatListItemTitle(const std::string str, size_t maxScore = 140);
-brls::SelectListItem* createFreqListItem(SysClkModule module, uint32_t selectedFreqInMhz, std::string defaultString = "application/manager/utils/doNotOverride"_i18n);
+brls::SelectListItem* createFreqListItem(SysClkModule module, uint32_t selectedFreqInMHz, std::string defaultString = "application/manager/utils/doNotOverride"_i18n);
 
 brls::SelectListItem* createProfileListItem(std::string name, uint32_t selectedProfile, std::string defaultString = "application/manager/utils/doNotOverride"_i18n);
 
@@ -40,7 +44,6 @@ std::string formatFreq(uint32_t freq);
 std::string formatTid(uint64_t tid);
 std::string formatProfile(SysClkProfile profile, bool pretty = true);
 std::string formatTemp(uint32_t temp);
-
-std::string SysClkConfigValueToString(SysClkConfigValue val, bool pretty);
+std::string formatPower(int32_t power);
 
 void errorResult(std::string tag, Result rc);

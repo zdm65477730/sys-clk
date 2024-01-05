@@ -11,5 +11,7 @@
 #pragma once
 
 #include "nxExt/apm_ext.h"
+#include "nxExt/t210.h"
+#include "nxExt/max17050.h"
 #include "nxExt/ipc_server.h"
 #include "nxExt/cpp/lockable_mutex.h"

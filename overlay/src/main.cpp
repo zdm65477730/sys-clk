@@ -40,6 +40,9 @@ class AppOverlay : public tsl::Overlay
                     "ChipBaseMenuGuiText": "Chip:",
                     "PCBBaseMenuGuiText": "PCB:",
                     "SkinBaseMenuGuiText": "Skin:",
+                    "BatteryPowerBaseMenuGuiText": "Battery Power",
+                    "BatteryPowerNowBaseMenuGuiText": "Now:",
+                    "BatteryPowerAvgBaseMenuGuiText": "Avg:",
                     "CPUPrettySysclkFormatModuleText": "CPU",
                     "CPUSysclkFormatModuleText": "cpu",
                     "GPUPrettySysclkFormatModuleText": "GPU",
@@ -72,10 +75,8 @@ class AppOverlay : public tsl::Overlay
                     "EnabledGlobalOverrideGuiToggleListItemText": "Yes",
                     "DisabledGlobalOverrideGuiToggleListItemText": "No",
                     "UncappedGPUGlobalOverrideGuiCustomToggleListItemText": "Uncapped GPU",
-                    "MinProfileGlobalOverrideGuiCustomToggleListItemText": "Min. profile",
-                    "Set1785MHzInCPUBoostGlobalOverrideGuiCustomToggleListItemText": "CPU to 1785 in boost",
-                    "Set76MHzInGPUBoostGlobalOverrideGuiCustomToggleListItemText": "GPU to 76 in boost",
-                    "OverrideMemTo1600MHzGlobalOverrideGuiCustomToggleListItemText": "Override MEM to 1600"
+                    "OverrideMemToMaxGlobalOverrideGuiCustomToggleListItemText": "Override MEM to MAX",
+                    "MinProfileGlobalOverrideGuiCustomToggleListItemText": "Min. profile"
                 }
             )";
             std::string lanPath = std::string("sdmc:/switch/.overlays/lang/") + APPTITLE + "/";
@@ -86,8 +87,6 @@ class AppOverlay : public tsl::Overlay
             fsdevUnmountDevice("sdmc");
         }
         ~AppOverlay() {}
-
-        virtual void initServices() override {}
 
         virtual void exitServices() override {
             sysclkIpcExit();

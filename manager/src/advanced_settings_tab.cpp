@@ -22,7 +22,7 @@
 
 #include "utils.h"
 
-#include <sysclk/clocks.h>
+#include <sysclk.h>
 
 AdvancedSettingsTab::AdvancedSettingsTab()
 {
@@ -51,7 +51,7 @@ AdvancedSettingsTab::AdvancedSettingsTab()
     cpuFreqListItem->getValueSelectedEvent()->subscribe([](int result){
         Result rc = result == 0 ?
             sysclkIpcRemoveOverride(SysClkModule_CPU) :
-            sysclkIpcSetOverride(SysClkModule_CPU, sysclk_g_freq_table_cpu_hz[result - 1]);
+            sysclkIpcSetOverride(SysClkModule_CPU, g_freq_table_hz[SysClkModule_CPU][result]);
 
         if (R_FAILED(rc))
         {
@@ -66,7 +66,7 @@ AdvancedSettingsTab::AdvancedSettingsTab()
     gpuFreqListItem->getValueSelectedEvent()->subscribe([](int result){
         Result rc = result == 0 ?
             sysclkIpcRemoveOverride(SysClkModule_GPU) :
-            sysclkIpcSetOverride(SysClkModule_GPU, sysclk_g_freq_table_gpu_hz[result - 1]);
+            sysclkIpcSetOverride(SysClkModule_GPU, g_freq_table_hz[SysClkModule_GPU][result]);
 
         if (R_FAILED(rc))
         {
@@ -82,7 +82,7 @@ AdvancedSettingsTab::AdvancedSettingsTab()
     {
         Result rc = result == 0 ?
             sysclkIpcRemoveOverride(SysClkModule_MEM) :
-            sysclkIpcSetOverride(SysClkModule_MEM, sysclk_g_freq_table_mem_hz[result - 1]);
+            sysclkIpcSetOverride(SysClkModule_MEM, g_freq_table_hz[SysClkModule_MEM][result]);
 
         if (R_FAILED(rc))
         {
@@ -107,13 +107,13 @@ AdvancedSettingsTab::AdvancedSettingsTab()
 
     sysclkIpcGetConfigValues(&this->configValues);
 
-    for (int i = 0; i < SysClkConfigValue_UncappedGPUEnabled; i++)
+    for (int i = 0; i < 5; i++)
     {
         SysClkConfigValue config = (SysClkConfigValue) i;
 
-        std::string label       = SysClkConfigValueToString(config, true);
+        std::string label       = std::string(sysclkFormatConfigValue(config, true));
         std::string description = this->getDescriptionForConfig(config);
-        uint64_t defaultValue   = configValues.values[config];
+        uint64_t defaultValue   = this->configValues.values[config];
 
         brls::IntegerInputListItem* configItem = new brls::IntegerInputListItem(label, defaultValue, label, description);
 
@@ -157,16 +157,17 @@ AdvancedSettingsTab::AdvancedSettingsTab()
         this->addView(configItem);
     }
     
-    //loop for the added 5 custom configs
-    for (int i = SysClkConfigValue_UncappedGPUEnabled; i < SysClkConfigValue_EnumMax; i++)
+    //loop for the added 3 custom configs
+    for (int i = 5; i < SysClkConfigValue_EnumMax; i++)
     {
         SysClkConfigValue config = (SysClkConfigValue) i;
 
-        std::string label       = SysClkConfigValueToString(config, true);
+        std::string label       = std::string(sysclkFormatConfigValue(config, true));
         
-        uint64_t defaultValue   = configValues.values[config];
+        //uint64_t defaultValue   = configValues.values[config];
+        uint64_t defaultValue   = this->configValues.values[config];
         
-        if (i==SysClkConfigValue_FakeProfileModeEnabled) {
+        if (i==(SysClkConfigValue_EnumMax-1)) {
 
             // Fake profile
             brls::SelectListItem *profileListItem = createProfileListItem(label, (uint32_t) defaultValue);
@@ -175,13 +176,12 @@ AdvancedSettingsTab::AdvancedSettingsTab()
 
                 try
                 {
-                    
                     uint64_t uvalue = (uint64_t) sysclk_g_profile_table[result - 1];
                     
                     if (!sysclkValidConfigValue(config, uvalue))
                     {
                         brls::Application::notify("application/manager/mainframe/advancedSettingsTab/invalidValueConfigSaveFailedNotify"_i18n);
-                        profileListItem->setValue(formatProfile((SysClkProfile)this->configValues.values[config]) );
+                        profileListItem->setValue(sysclkFormatProfile((SysClkProfile)this->configValues.values[config],true) );
                         return;
                     }
 
@@ -267,6 +267,10 @@ std::string AdvancedSettingsTab::getDescriptionForConfig(SysClkConfigValue confi
             return "application/manager/mainframe/advancedSettingsTab/csvUpdateIntervalDescription"_i18n;
         case SysClkConfigValue_TempLogIntervalMs:
             return "application/manager/mainframe/advancedSettingsTab/temperatureLogIntervalDescription"_i18n;
+        case SysClkConfigValue_FreqLogIntervalMs:
+            return "application/manager/mainframe/advancedSettingsTab/frequencyLogIntervalDescription"_i18n;
+        case SysClkConfigValue_PowerLogIntervalMs:
+            return "application/manager/mainframe/advancedSettingsTab/powerLogIntervalDescription"_i18n;
         case SysClkConfigValue_PollingIntervalMs:
             return "application/manager/mainframe/advancedSettingsTab/pollingIntervalDescription"_i18n;
         default:

@@ -17,6 +17,9 @@
     "ChipBaseMenuGuiText": "芯片：",
     "PCBBaseMenuGuiText": "主板：",
     "SkinBaseMenuGuiText": "表面：",
+    "BatteryPowerBaseMenuGuiText": "电池功耗",
+    "BatteryPowerNowBaseMenuGuiText": "当前：",
+    "BatteryPowerAvgBaseMenuGuiText": "平均：",
     "CPUPrettySysclkFormatModuleText": "CPU",
     "CPUSysclkFormatModuleText": "cpu",
     "GPUPrettySysclkFormatModuleText": "GPU",
@@ -49,8 +52,6 @@
     "EnabledGlobalOverrideGuiToggleListItemText": "是",
     "DisabledGlobalOverrideGuiToggleListItemText": "否",
     "UncappedGPUGlobalOverrideGuiCustomToggleListItemText": "GPU无限制",
-    "MinProfileGlobalOverrideGuiCustomToggleListItemText": "最小配置",
-    "Set1785MHzInCPUBoostGlobalOverrideGuiCustomToggleListItemText": "升压模式下设置CPU到1785MHz",
-    "Set76MHzInGPUBoostGlobalOverrideGuiCustomToggleListItemText": "升压模式下设置GPU到76MHz",
-    "OverrideMemTo1600MHzGlobalOverrideGuiCustomToggleListItemText": "超频内存到1600MHz"
+    "OverrideMemToMaxGlobalOverrideGuiCustomToggleListItemText": "超频内存到最大",
+    "MinProfileGlobalOverrideGuiCustomToggleListItemText": "最小配置"
 }

@@ -34,14 +34,14 @@ void BaseMenuGui::preDraw(tsl::gfx::Renderer* renderer)
     if(this->context)
     {
         char buf[32];
-        
-        int offset = 20;
 
-        renderer->drawString("AppIDBaseMenuGuiText"_tr.c_str(), false, 20, 90-offset, SMALL_TEXT_SIZE, DESC_COLOR);
+        std::uint32_t y = 85;
+
+        renderer->drawString("AppIDBaseMenuGuiText"_tr.c_str(), false, 20, y, SMALL_TEXT_SIZE, DESC_COLOR);
         snprintf(buf, sizeof(buf), "%016lX", context->applicationId);
-        renderer->drawString(buf, false, 81, 90-offset, SMALL_TEXT_SIZE, VALUE_COLOR);
+        renderer->drawString(buf, false, 81, y, SMALL_TEXT_SIZE, VALUE_COLOR);
 
-        renderer->drawString("ProfileBaseMenuGuiText"_tr.c_str(), false, 246, 90-offset, SMALL_TEXT_SIZE, DESC_COLOR);
+        renderer->drawString("ProfileBaseMenuGuiText"_tr.c_str(), false, 246, y, SMALL_TEXT_SIZE, DESC_COLOR);
 
         std::string profileFormat{" "};
         bool pretty = true;
@@ -65,7 +65,9 @@ void BaseMenuGui::preDraw(tsl::gfx::Renderer* renderer)
             default:
                 break;
         }
-        renderer->drawString(profileFormat.c_str(), false, 302, 90-offset, SMALL_TEXT_SIZE, VALUE_COLOR);
+        renderer->drawString(profileFormat.c_str(), false, 302, y, SMALL_TEXT_SIZE, VALUE_COLOR);
+
+        y += 30;
 
         static struct
         {
@@ -80,31 +82,68 @@ void BaseMenuGui::preDraw(tsl::gfx::Renderer* renderer)
         for(unsigned int i = 0; i < SysClkModule_EnumMax; i++)
         {
             std::uint32_t hz = this->context->freqs[freqOffsets[i].m];
-            snprintf(buf, sizeof(buf), "%u.%u Mhz", hz / 1000000, hz / 100000 - hz / 1000000 * 10);
-            renderer->drawString(buf, false, freqOffsets[i].x, 115-offset, SMALL_TEXT_SIZE, VALUE_COLOR);
+
+            snprintf(buf, sizeof(buf), "%u.%u MHz", hz / 1000000, hz / 100000 - hz / 1000000 * 10);
+            renderer->drawString(buf, false, freqOffsets[i].x, y, SMALL_TEXT_SIZE, VALUE_COLOR);
         }
-        renderer->drawString("CPUBaseMenuGuiText"_tr.c_str(), false, 20, 115-offset, SMALL_TEXT_SIZE, DESC_COLOR);
-        renderer->drawString("GPUBaseMenuGuiText"_tr.c_str(), false, 162, 115-offset, SMALL_TEXT_SIZE, DESC_COLOR);
-        renderer->drawString("MemBaseMenuGuiText"_tr.c_str(), false, 295, 115-offset, SMALL_TEXT_SIZE, DESC_COLOR);
+        renderer->drawString("CPUBaseMenuGuiText"_tr.c_str(), false, 20, y, SMALL_TEXT_SIZE, DESC_COLOR);
+        renderer->drawString("GPUBaseMenuGuiText"_tr.c_str(), false, 162, y, SMALL_TEXT_SIZE, DESC_COLOR);
+        renderer->drawString("MemBaseMenuGuiText"_tr.c_str(), false, 295, y, SMALL_TEXT_SIZE, DESC_COLOR);
+
+        y += 25;
+
+        for(unsigned int i = 0; i < SysClkModule_EnumMax; i++)
+        {
+            std::uint32_t hz = this->context->realFreqs[freqOffsets[i].m];
+            snprintf(buf, sizeof(buf), "%u.%u MHz", hz / 1000000, hz / 100000 - hz / 1000000 * 10);
+            renderer->drawString(buf, false, freqOffsets[i].x, y, SMALL_TEXT_SIZE, VALUE_COLOR);
+        }
+
+        y += 25;
 
         static struct
         {
             SysClkThermalSensor s;
             std::uint32_t x;
         } tempOffsets[SysClkModule_EnumMax] = {
-            { SysClkThermalSensor_SOC, 60 },
-            { SysClkThermalSensor_PCB, 165 },
-            { SysClkThermalSensor_Skin, 268 },
+            { SysClkThermalSensor_SOC, 61 },
+            { SysClkThermalSensor_PCB, 204 },
+            { SysClkThermalSensor_Skin, 342 },
         };
 
-        renderer->drawString("ChipBaseMenuGuiText"_tr.c_str(), false, 20, 140-offset, SMALL_TEXT_SIZE, DESC_COLOR);
-        renderer->drawString("PCBBaseMenuGuiText"_tr.c_str(), false, 125, 140-offset, SMALL_TEXT_SIZE, DESC_COLOR);
-        renderer->drawString("SkinBaseMenuGuiText"_tr.c_str(), false, 230, 140-offset, SMALL_TEXT_SIZE, DESC_COLOR);
+        renderer->drawString("ChipBaseMenuGuiText"_tr.c_str(), false, 20, y, SMALL_TEXT_SIZE, DESC_COLOR);
+        renderer->drawString("PCBBaseMenuGuiText"_tr.c_str(), false, 166, y, SMALL_TEXT_SIZE, DESC_COLOR);
+        renderer->drawString("SkinBaseMenuGuiText"_tr.c_str(), false, 303, y, SMALL_TEXT_SIZE, DESC_COLOR);
+
         for(unsigned int i = 0; i < SysClkModule_EnumMax; i++)
         {
             std::uint32_t millis = this->context->temps[tempOffsets[i].s];
             snprintf(buf, sizeof(buf), "%u.%u °C", millis / 1000, (millis - millis / 1000 * 1000) / 100);
-            renderer->drawString(buf, false, tempOffsets[i].x, 140-offset, SMALL_TEXT_SIZE, VALUE_COLOR);
+
+            renderer->drawString(buf, false, tempOffsets[i].x, y, SMALL_TEXT_SIZE, VALUE_COLOR);
+        }
+
+        y += 30;
+
+        static struct
+        {
+            SysClkPowerSensor s;
+            std::uint32_t x;
+        } powerOffsets[SysClkPowerSensor_EnumMax] = {
+            { SysClkPowerSensor_Now, 204 },
+            { SysClkPowerSensor_Avg, 342 },
+        };
+
+        renderer->drawString("BatteryPowerBaseMenuGuiText"_tr.c_str(), false, 20, y, SMALL_TEXT_SIZE, DESC_COLOR);
+
+        renderer->drawString("BatteryPowerNowBaseMenuGuiText"_tr.c_str(), false, 160, y, SMALL_TEXT_SIZE, DESC_COLOR);
+        renderer->drawString("BatteryPowerAvgBaseMenuGuiText"_tr.c_str(), false, 304, y, SMALL_TEXT_SIZE, DESC_COLOR);
+        for(unsigned int i = 0; i < SysClkPowerSensor_EnumMax; i++)
+        {
+            std::uint32_t mw = this->context->power[powerOffsets[i].s];
+            snprintf(buf, sizeof(buf), "%d mW", mw);
+            renderer->drawString(buf, false, powerOffsets[i].x, y, SMALL_TEXT_SIZE, VALUE_COLOR);
+
         }
     }
 }

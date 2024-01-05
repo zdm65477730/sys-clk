@@ -13,6 +13,7 @@
 #include <time.h>
 #include <vector>
 #include <string>
+#include <cstring>
 #include <atomic>
 #include <cstdarg>
 #include <sysclk.h>
@@ -23,6 +24,19 @@
 #define FILE_LOG_FLAG_PATH FILE_CONFIG_DIR "/log.flag"
 #define FILE_LOG_FILE_PATH FILE_CONFIG_DIR "/log.txt"
 
+typedef struct CustTable {
+    u8  cust[4] = {'C', 'U', 'S', 'T'};
+    u32 custRev;
+    u32 mtcConf;
+    u32 commonCpuBoostClock;
+    u32 commonEmcMemVolt;
+    u32 eristaCpuMaxVolt;
+    u32 eristaEmcMaxClock;
+    u32 marikoCpuMaxVolt;
+    u32 marikoEmcMaxClock;
+    u32 marikoEmcVddqVolt;
+} CustTable;
+
 class FileUtils
 {
   public:
@@ -31,8 +45,10 @@ class FileUtils
     static bool IsInitialized();
     static bool IsLogEnabled();
     static void InitializeAsync();
-    static void LogLine(const char *format, ...);
+    static void LogLine(const char* format, ...);
     static void WriteContextToCsv(const SysClkContext* context);
+    static void ParseLoaderKip();
   protected:
     static void RefreshFlags(bool force);
+    static Result CustParser(const char* path, size_t filesize);
 };

@@ -11,9 +11,10 @@
 #pragma once
 
 #include <stdint.h>
-#include "clocks.h"
+#include "board.h"
+#include "clock_manager.h"
 
-#define SYSCLK_IPC_API_VERSION 0
+#define SYSCLK_IPC_API_VERSION 4
 #define SYSCLK_IPC_SERVICE_NAME "sys:clk"
 
 enum SysClkIpcCmd
@@ -29,6 +30,7 @@ enum SysClkIpcCmd
     SysClkIpcCmd_SetOverride = 8,
     SysClkIpcCmd_GetConfigValues = 9,
     SysClkIpcCmd_SetConfigValues = 10,
+    SysClkIpcCmd_GetFreqList = 11,
 };
 
 
@@ -43,3 +45,9 @@ typedef struct
     SysClkModule module;
     uint32_t hz;
 } SysClkIpc_SetOverride_Args;
+
+typedef struct
+{
+    SysClkModule module;
+    uint32_t maxCount;
+} SysClkIpc_GetFreqList_Args;

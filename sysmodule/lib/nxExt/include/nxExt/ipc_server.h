@@ -15,8 +15,6 @@ extern "C"
 {
 #endif
 
-#pragma once
-
 #include <switch.h>
 
 #define IPC_SERVER_EXT_RESPONSE_MAX_DATA_SIZE (0x100 - 0x10 - sizeof(IpcServerRawHeader))
@@ -57,7 +55,7 @@ typedef Result (*IpcServerRequestHandler)(void* userdata, const IpcServerRequest
 Result ipcServerInit(IpcServer* server, const char* name, u32 max_sessions);
 Result ipcServerExit(IpcServer* server);
 Result ipcServerProcess(IpcServer* server, IpcServerRequestHandler handler, void* userdata);
-Result ipcServerParseCommand(const IpcServerRequest* r, size_t *out_datasize, void** out_data, u64* out_cmd);
+Result ipcServerParseCommand(const IpcServerRequest* r, size_t* out_datasize, void** out_data, u64* out_cmd);
 
 #ifdef __cplusplus
 }

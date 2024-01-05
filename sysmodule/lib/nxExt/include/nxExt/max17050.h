@@ -11,15 +11,16 @@
 #pragma once
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-#include "sysclk/ipc.h"
-#include "sysclk/board.h"
-#include "sysclk/clock_manager.h"
-#include "sysclk/apm.h"
-#include "sysclk/config.h"
-#include "sysclk/errors.h"
+#include <switch.h>
+
+Result max17050Initialize(void);
+void max17050Exit(void);
+s32 max17050PowerNow(void);
+s32 max17050PowerAvg(void);
 
 #ifdef __cplusplus
 }
