@@ -23,8 +23,9 @@
  */
 
 #include "nxExt/max17050.h"
+#include "nxExt/i2c.h"
 
-#define MAX17050_WAIT_NS 1175800000UL
+#define MAX17050_WAIT_NS 1000000000UL
 
 #define MAX17050_VCELL      0x09
 #define MAX17050_Current    0x0A
@@ -39,37 +40,36 @@ static u64 g_update_ticks = 0;
 static s32 g_power_now = 0;
 static s32 g_power_avg = 0;
 
-static Result _max17050_get_reg(u8 reg, u16* out)
+static Result _max17050_get_power(s32 *out_mw_now, s32 *out_mw_avg)
 {
-    Result rc = i2csessionSendAuto(&g_i2c_session, &reg, sizeof(reg), I2cTransactionOption_All);
+    s64 ma, mv;
+    u16 values[3] = {0};
 
-    if(R_SUCCEEDED(rc))
+    Result rc = i2csessionExtRegReceive(&g_i2c_session, MAX17050_VCELL, values, sizeof(values));
+
+    if (R_SUCCEEDED(rc))
     {
-        rc = i2csessionReceiveAuto(&g_i2c_session, out, sizeof(*out), I2cTransactionOption_All);
+        ma = (s16)values[1];
+        ma = ma * 1562500 / (MAX17050_BOARD_SNS_RESISTOR_UOHM * MAX17050_BOARD_CGAIN);
+
+        mv = (int)(values[0] >> 3) * 625 / 1000;
+
+        *out_mw_now = ma * mv / 1000000;
     }
 
-    return rc;
-}
-
-static Result _max17050_get_power(u8 creg, u8 vreg, s32 *out_mw)
-{
-    u16 current = 0;
-    u16 voltage = 0;
-
-    Result rc = _max17050_get_reg(creg, &current);
-
-    if(R_SUCCEEDED(rc))
+    if (R_SUCCEEDED(rc))
     {
-        rc = _max17050_get_reg(vreg, &voltage);
+        rc = i2csessionExtRegReceive(&g_i2c_session, MAX17050_AvgVCELL, values, sizeof(u16));
     }
 
-    if(R_SUCCEEDED(rc))
+    if (R_SUCCEEDED(rc))
     {
-        s64 ma = (s16)current;
-        ma *= 1562500 / (MAX17050_BOARD_SNS_RESISTOR_UOHM * MAX17050_BOARD_CGAIN);
+        ma = (s16)values[2];
+        ma = ma * 1562500 / (MAX17050_BOARD_SNS_RESISTOR_UOHM * MAX17050_BOARD_CGAIN);
 
-        s64 mv = (int)(voltage >> 3) * 625 / 1000;
-        *out_mw = ma * mv / 1000000;
+        mv = (int)(values[0] >> 3) * 625 / 1000;
+
+        *out_mw_avg = ma * mv / 1000000;
     }
 
     return rc;
@@ -90,8 +90,7 @@ static void _max17050_update()
         return;
     }
 
-    _max17050_get_power(MAX17050_Current, MAX17050_VCELL, &g_power_now);
-    _max17050_get_power(MAX17050_AvgCurrent, MAX17050_AvgVCELL, &g_power_avg);
+    _max17050_get_power(&g_power_now, &g_power_avg);
 }
 
 Result max17050Initialize(void)
